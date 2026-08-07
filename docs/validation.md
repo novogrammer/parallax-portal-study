@@ -13,8 +13,8 @@
 | 複数Portalを同時表示 | 各Sceneが対応するscissor領域だけに描画される |
 | 同じSceneを異なるProfileで使用 | 各Portalが独立したCamera結果を持つ |
 | 異なるSceneとProfileを使用 | 一方の設定変更が他方へ影響しない |
-| vw指定 | 端末区分にかかわらずCSS pxへ解決して計算できる |
-| CSS px指定 | 端末区分にかかわらず同じ計算を使える |
+| CSSでvw指定 | `getBoundingClientRect()` のCSS px実測値で計算できる |
+| CSSでpx指定 | `getBoundingClientRect()` のCSS px実測値で同じ計算を使える |
 | resize | 実測DOM矩形とCanvas寸法から連続的に再計算される |
 | ブラウザズーム | CSS pxへ正規化した寸法比で再計算される |
 | progressが0未満または1超 | clampせず、同じ式でCamera Yが線形外挿される |
@@ -33,7 +33,7 @@
 - Camera Y移動高が0なら設定例外を投げて処理を終了する。
 - Reference FOV、Canvas / DOM高比、Camera移動高 / 基準投影高比からRender Camera FOVを一意に導出できる。
 - Camera移動高と基準投影高の同値を必須条件にしない。
-- CSS pxとvwを端末種別から独立して扱える。
+- CSSの記述単位を解析せず、`getBoundingClientRect()` のCSS px実測値だけで計算できる。
 - 部分表示時に交差矩形をFOVまたはCamera Yの計算へ使わない。
 - Scene内の実際のZ距離に応じて透視投影上の視差が変化する。
 - Scene IDやProfile IDによる条件分岐をPortal Geometryへ埋め込まない。

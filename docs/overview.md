@@ -75,10 +75,7 @@ ProjectionProfile
 ├── referenceFovY
 ├── referenceProjectionHeightMeters
 ├── cameraTopY
-├── cameraBottomY
-└── referenceDomHeight
-    ├── value
-    └── unit: "css-px" | "vw"
+└── cameraBottomY
 ```
 
 ### Portal Configuration
@@ -125,7 +122,9 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 ### Page / UI
 
 - DOM窓と通常コンテンツの配置
-- CSS pxまたはvwによるレイアウト
+- Portalの寸法をCSSで定義し、pxまたはvwなどのCSS単位を使用
+- DOM Adapterが毎フレーム `getBoundingClientRect()` からfull Portal rectをCSS pxで取得
+- style文字列やCSS単位をJavaScriptで解析しない
 - viewport条件に応じたProjection Profileの選択
 - アクセシビリティと前面レイヤー
 

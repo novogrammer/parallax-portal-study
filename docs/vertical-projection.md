@@ -97,13 +97,14 @@ renderCameraFovY =
 
 両者が同値の場合は、一般式中の「Camera移動高 / 基準投影高」が結果的に1となり、参照実装相当の関係になる。同値でない設定も正常とする。
 
-## DOM単位と実行時矩形
+## DOM寸法と実行時矩形
 
-`referenceDomHeight.unit` は `"css-px"` または `"vw"` とし、PC / SPなどの端末区分とは結び付けない。
+Portalの寸法はCSSだけが所有する。Projection ProfileにはDOM寸法やCSS単位を保持しない。
 
-- PC相当のviewportでvwを使える。
-- SP相当のviewportでCSS pxを使える。
-- 実行時には `getBoundingClientRect()` 相当の結果をCSS pxとして計算へ渡す。
+- CSSではpx、vw、media queryなどを自由に使える。
+- DOM Adapterは毎フレーム `getBoundingClientRect()` から実測矩形を取得する。
+- style文字列、`element.style`、`getComputedStyle()` の値を幾何入力として解析しない。
+- CSSの記述単位にかかわらず、Portal GeometryへはCSS pxの数値を渡す。
 - device pixelとCSS pxを区別し、DPRを幾何計算へ含めない。
 
 FOV、進行値、Camera Yにはclip前のfull Portal rectの `y` と `h` を使う。Portalとviewportの交差矩形はscissorだけに使い、部分表示高をFOV計算へ代入しない。
