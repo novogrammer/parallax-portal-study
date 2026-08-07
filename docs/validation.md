@@ -11,9 +11,14 @@
 | Portalが部分表示 | scissorだけが変化し、Camera YとFOVは連続する |
 | viewportより大きいPortal | full Portal rectによる計算が維持される |
 | 複数Portalを同時表示 | 各Sceneが対応するscissor領域だけに描画される |
+| Portalごとの描画 | WebGL viewportはCanvas全体のまま、scissorだけが交差矩形へ変わる |
+| Portal描画前 | 対象scissor内のcolor bufferとdepth bufferがclearされる |
+| Portal外のCanvas領域 | 透明で背面のDOMが表示される |
+| 複数Portalを配置 | Portal同士が重ならず、描画順に依存しない |
 | 同じSceneを異なるProfileで使用 | 各Portalが独立したCamera結果を持つ |
 | 異なるSceneとProfileを使用 | 一方の設定変更が他方へ影響しない |
 | 同じScene IDを複数Portalで使用 | Portalごとに異なるSceneインスタンスが生成される |
+| Scene Variantを切り替える | 既存Sceneへ完全な状態が絶対値で再適用される |
 | CSSでvw指定 | `getBoundingClientRect()` のCSS px実測値で計算できる |
 | CSSでpx指定 | `getBoundingClientRect()` のCSS px実測値で同じ計算を使える |
 | resize | 実測DOM矩形とCanvas寸法から連続的に再計算される |
@@ -34,6 +39,8 @@
 | 実行時入力から一時的に不正なFOVが導出される | Cameraを部分更新せず、前回の正常状態全体を維持する |
 | 初回から実行時FOVが不正 | 対象Portalを描画しない |
 | 不正状態が複数フレーム継続 | `console.error` を毎フレーム繰り返さない |
+| `data-portal-id` と `portalId` が一致 | DOM窓とPortal Configurationが一意に対応する |
+| `portalId` に対応するDOM要素がない | 初期化時に設定例外を投げて処理を終了する |
 
 ## 合格条件
 
@@ -46,6 +53,9 @@
 - Camera移動高と基準投影高の同値を必須条件にしない。
 - CSSの記述単位を解析せず、`getBoundingClientRect()` のCSS px実測値だけで計算できる。
 - 部分表示時に交差矩形をFOVまたはCamera Yの計算へ使わない。
+- WebGL viewportをPortal矩形へ変更せず、Canvas全体への投影をscissorだけで切り取れる。
+- Portalごとの描画結果が、以前に描画したPortalのcolor bufferまたはdepth bufferに影響されない。
+- Portal外のCanvas領域を透明に維持できる。
 - Scene内の実際のZ距離に応じて透視投影上の視差が変化する。
 - Scene IDやProfile IDによる条件分岐をPortal Geometryへ埋め込まない。
 - Portalの描画順が各PortalのCamera計算へ影響しない。
@@ -56,6 +66,8 @@
 - Media Queryの重複や不一致にかかわらず、優先順位と `otherwise` により常に1つのVariantを選択できる。
 - ブレークポイントとVariantの対応を設定で変更でき、Portal固有の条件分岐を共通選択処理へ追加する必要がない。
 - Variant切り替え後のProjection ProfileとScene状態が、切り替え前のVariantに依存しない。
+- Scene Variantを差分として適用せず、既存Sceneへ絶対値で再適用できる。
 - SceneインスタンスをPortal間で共有せず、Scene Variantの調整が他のPortalへ影響しない。
+- `portalId` によってPortal ConfigurationとDOM要素を一意に対応付けられる。
 - Cameraを `(0, cameraY, referenceCameraDistance)` に置き、Camera Yにかかわらず負のZ方向へ向けられる。
 - 不正なRender Camera FOVによって、Camera状態の一部だけが更新されない。

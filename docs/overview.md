@@ -30,11 +30,14 @@ Renderer Adapter ---> position: fixed Canvas ---> Scene
 
 - full Portal rectはCameraと投影の計算に使う。
 - Portalとviewportの交差矩形はscissorだけに使う。
+- WebGL viewportは常にCanvas全体とし、Portalごとに変更しない。
 - 部分表示時もCameraと構図を切り替えず、描画範囲だけを狭める。
 - 複数Portalはそれぞれ独立したScene、Camera、Projection Profileを持てる。
 - SceneインスタンスはPortalごとに生成し、同じ `sceneId` を使うPortal間でも共有しない。
 - Camera Xは初期値に固定し、PortalのX位置やスクロールでは動かさない。
 - 左右に寄ったPortalは、Canvas全体へ投影されたSceneの対応領域をそのままscissorする。
+- Canvasは透明とし、Portal以外の領域では背面のDOMを表示する。
+- Portal同士は重ならないようにPage / UIで配置し、描画順による重なり規則は設けない。
 - CanvasをDOMより背面に置く場合、Portalとして見せる領域はCanvasを遮らないレイヤー構成にする。
 
 投影の計算は[垂直投影モデル](./vertical-projection.md)、確認事項は[検証](./validation.md)を正本とする。
@@ -86,6 +89,7 @@ DOM窓とSceneを関連付け、viewport条件に応じてProjection ProfileとS
 
 ```text
 PortalConfiguration
+├── portalId
 ├── sceneId
 └── responsiveVariants
     ├── rules[]
@@ -98,11 +102,13 @@ PortalConfiguration
         └── sceneVariantId
 ```
 
+`portalId` は一意とし、DOM側の `[data-portal-id="..."]` と対応させる。要素が見つからない場合は初期化時の設定例外とする。
+
 `query` は `matchMedia()` へ渡すMedia Query文字列とし、具体的なブレークポイントとVariantの対応はTypeScriptの設定オブジェクトに記述する。Portalごとの条件分岐を選択ロジックへハードコードしない。
 
 共通の選択処理は `rules` を上から評価し、最初に一致したVariantを選ぶ。どの条件にも一致しない場合は必須の `otherwise` を選ぶため、常にちょうど1つのVariantが有効になる。各Variantは差分ではなく完全な状態として扱い、切り替え時にはProjection ProfileとScene Variantの両方を適用する。
 
-`sceneVariantId` はコード生成Sceneへ渡す調整一式を識別する。以前のVariantによる位置、スケール、表示状態などを残さないよう、`otherwise` を含むすべてのVariantが完全なScene状態を再現できるものとする。
+`sceneVariantId` はコード生成Sceneへ渡す調整一式を識別する。既存Sceneへ位置、回転、スケール、表示状態などを絶対値で再適用し、以前のVariantによる状態を残さない。`otherwise` を含むすべてのVariantが完全なScene状態を再現できるものとする。
 
 Scene VariantはMedia Queryによって選択し、Portalごとに所有するSceneインスタンスへ適用する。他のPortalのScene状態には影響しない。
 
@@ -130,10 +136,12 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 
 - `position: fixed` Canvasの生成とresize
 - Three.jsのWebGLRendererとPerspectiveCamera
+- alphaを有効にし、CanvasのPortal外領域を透明に維持
 - Cameraを `(0, cameraY, referenceCameraDistance)` に置き、回転なしで負のZ方向へ向ける
 - `near` と `far` にRuntime共通の代表値を使い、Scene規模に応じて調整
 - DPR上限
-- scissorとviewportの設定
+- WebGL viewportをCanvas全体に固定し、Portalごとに交差矩形だけをscissorへ設定
+- Portal描画前にscissor内のcolor bufferとdepth bufferをclear
 - 導出したCamera値の描画エンジンへの適用
 - 描画対象Portalの選別
 - Sceneの読み込みと破棄
@@ -146,6 +154,8 @@ Camera Yが移動してもCameraの向きは負のZ方向に固定する。原�
 ### Page / UI
 
 - DOM窓と通常コンテンツの配置
+- Portal同士が重ならない配置
+- 一意な `data-portal-id` とPortal Configurationの `portalId` の対応
 - Portalの寸法をCSSで定義し、pxまたはvwなどのCSS単位を使用
 - DOM Adapterが毎フレーム `getBoundingClientRect()` からfull Portal rectをCSS pxで取得
 - style文字列やCSS単位をJavaScriptで解析しない
@@ -161,6 +171,7 @@ Camera Yが移動してもCameraの向きは負のZ方向に固定する。原�
 3. 交差領域がなければ描画対象から外す。
 4. Projection Profileとfull Portal rectからCamera Y、Camera距離、Render Camera FOV、可視幅を導出する。
 5. Motion Policyによる追加演出を適用する。
-6. 交差矩形をscissorとしてSceneを描画する。
+6. Canvas全体のWebGL viewportを維持したまま、交差矩形をscissorへ設定する。
+7. scissor内のcolor bufferとdepth bufferをclearしてSceneを描画する。
 
 Scene IDやProfile IDによる条件分岐をPortal Geometryへ埋め込まない。
