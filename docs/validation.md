@@ -23,6 +23,11 @@
 | Canvasのaspectが変化 | Render Camera FOV Xと可視幅が再導出される |
 | Portal幅が変化 | 同じm/CSS pxでPortal可視幅が変化する |
 | Portalが左右に寄る | Camera Xは固定され、Canvas上の対応領域がscissorされる |
+| 複数のMedia Queryが一致 | `rules` の上から最初に一致したVariantだけが選ばれる |
+| どのMedia Queryにも一致しない | 必須の `otherwise` Variantが選ばれる |
+| viewport条件が切り替わる | Projection ProfileとScene Variantが一式で再適用される |
+| 条件付きVariantから `otherwise` へ戻る | 以前のScene調整が残らず、`otherwise` の完全な状態になる |
+| Runtimeを破棄 | 登録したMedia Queryの変更listenerが解除される |
 
 ## 合格条件
 
@@ -42,3 +47,6 @@
 - Render Camera FOV Yと画面全体の `position: fixed` Canvasのaspectから水平FOVを一意に導出できる。
 - CanvasとPortalの可視幅を共通のm/CSS pxスケールから導出できる。
 - Camera XをPortal位置またはスクロールによって変更しない。
+- Media Queryの重複や不一致にかかわらず、優先順位と `otherwise` により常に1つのVariantを選択できる。
+- ブレークポイントとVariantの対応を設定で変更でき、Portal固有の条件分岐を共通選択処理へ追加する必要がない。
+- Variant切り替え後のProjection ProfileとScene状態が、切り替え前のVariantに依存しない。

@@ -80,13 +80,27 @@ ProjectionProfile
 
 ### Portal Configuration
 
-DOM窓、Scene、Projection Profileの組み合わせを選択する。
+DOM窓とSceneを関連付け、viewport条件に応じてProjection ProfileとScene Variantの組み合わせを選択する。
 
 ```text
 PortalConfiguration
 ├── sceneId
-└── projectionProfileId
+└── responsiveVariants
+    ├── rules[]
+    │   ├── query
+    │   └── variant
+    │       ├── projectionProfileId
+    │       └── sceneVariantId
+    └── otherwise
+        ├── projectionProfileId
+        └── sceneVariantId
 ```
+
+`query` は `matchMedia()` へ渡すMedia Query文字列とし、具体的なブレークポイントとVariantの対応はTypeScriptの設定オブジェクトに記述する。Portalごとの条件分岐を選択ロジックへハードコードしない。
+
+共通の選択処理は `rules` を上から評価し、最初に一致したVariantを選ぶ。どの条件にも一致しない場合は必須の `otherwise` を選ぶため、常にちょうど1つのVariantが有効になる。各Variantは差分ではなく完全な状態として扱い、切り替え時にはProjection ProfileとScene Variantの両方を適用する。
+
+`sceneVariantId` はコード生成Sceneへ渡す調整一式を識別する。以前のVariantによる位置、スケール、表示状態などを残さないよう、`otherwise` を含むすべてのVariantが完全なScene状態を再現できるものとする。
 
 `renderCameraFovY`、Camera Y移動高、Camera距離、スクロール進行値は設定として保持せず、実行時に導出する。
 
@@ -117,6 +131,8 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 - 導出したCamera値の描画エンジンへの適用
 - 描画対象Portalの選別
 - Sceneの読み込みと破棄
+- Media Queryの変更時に有効なVariantを再選択し、完全な状態として適用
+- Runtime破棄時にMedia Queryの変更listenerを解除
 - 常時requestAnimationFrameによる描画ループ
 
 ### Page / UI
@@ -125,12 +141,12 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 - Portalの寸法をCSSで定義し、pxまたはvwなどのCSS単位を使用
 - DOM Adapterが毎フレーム `getBoundingClientRect()` からfull Portal rectをCSS pxで取得
 - style文字列やCSS単位をJavaScriptで解析しない
-- viewport条件に応じたProjection Profileの選択
+- viewport条件、Projection Profile、Scene Variantの対応を設定として定義
 - アクセシビリティと前面レイヤー
 
 ## 1フレームのデータフロー
 
-常時requestAnimationFrameを実行し、各フレームでPortalごとに次の順で処理する。
+初期化時とMedia Queryの変更時に、各Portalの `rules` を上から評価して有効なVariantを選択する。常時requestAnimationFrameを実行し、各フレームでPortalごとに次の順で処理する。
 
 1. viewport寸法とfull Portal rectを取得する。
 2. Portalとviewportの交差矩形を求める。
