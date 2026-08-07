@@ -1,4 +1,4 @@
-# 検証条件と未決事項
+# 検証条件
 
 ## 検証ケース
 
@@ -20,6 +20,9 @@
 | progressが0未満または1超 | clampせず、同じ式でCamera Yが線形外挿される |
 | `cameraTopY == cameraBottomY` | 設定例外を投げて処理を終了する |
 | Portalがないフレーム | requestAnimationFrame自体は継続する |
+| Canvasのaspectが変化 | Render Camera FOV Xと可視幅が再導出される |
+| Portal幅が変化 | 同じm/CSS pxでPortal可視幅が変化する |
+| Portalが左右に寄る | Camera Xは固定され、Canvas上の対応領域がscissorされる |
 
 ## 合格条件
 
@@ -36,9 +39,6 @@
 - SceneまたはProfile固有値による条件分岐をPortal Geometryへ埋め込まない。
 - Portalの描画順が各PortalのCamera計算へ影響しない。
 - 表示対象Portalの有無にかかわらずrequestAnimationFrameを継続する。
-
-## 未決事項
-
-- DOM窓の比率と3D基準幅が一致しない場合、height基準、contain、coverのどれを採用するか。
-
-未決事項は実装で暗黙に確定させず、選択理由とともに設計へ反映する。
+- Render Camera FOV Yとfixed Canvasのaspectから水平FOVを一意に導出できる。
+- CanvasとPortalの可視幅を共通のm/CSS pxスケールから導出できる。
+- Camera XをPortal位置またはスクロールによって変更しない。

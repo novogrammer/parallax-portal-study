@@ -28,9 +28,11 @@ Renderer Adapter ---> fixed Canvas ---> Scene
 - Portalとviewportの交差矩形はscissorだけに使う。
 - 部分表示時もCameraと構図を切り替えず、描画範囲だけを狭める。
 - 複数Portalはそれぞれ独立したScene、Camera、Projection Profileを持てる。
+- Camera XはSceneごとの初期値に固定し、PortalのX位置やスクロールでは動かさない。
+- 左右に寄ったPortalは、Canvas全体へ投影されたSceneの対応領域をそのままscissorする。
 - CanvasをDOMより背面に置く場合、Portalとして見せる領域はCanvasを遮らないレイヤー構成にする。
 
-垂直方向の計算は[垂直投影モデル](./vertical-projection.md)、確認事項と未決事項は[検証](./validation.md)を正本とする。
+投影の計算は[垂直投影モデル](./vertical-projection.md)、確認事項は[検証](./validation.md)を正本とする。
 
 ## 座標系と単位
 
@@ -47,6 +49,7 @@ Renderer Adapter ---> fixed Canvas ---> Scene
 - Yは上向きが正
 - Cameraは回転なしで負のZ方向を見る
 - Cameraのupは正のY方向
+- Camera XはSceneごとの初期値に固定
 - Reference Planeは初期状態で `z = 0`
 - Sceneの表示物は原則として `z < 0`
 - `1 world unit = 1m`
@@ -92,8 +95,9 @@ PortalConfiguration
 ### Portal Geometry
 
 - DOM矩形とviewportの交差判定
-- スクロール進行値とCamera位置の計算
+- スクロール進行値とCamera Yの計算
 - Reference FOVからRender Camera FOVへの変換
+- fixed Canvasのaspectから水平FOVと可視幅を導出
 - 入力値の検証
 
 DOM型、Three.js型、描画ループには依存しない純粋な計算とする。
@@ -137,7 +141,7 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 1. viewport寸法とfull Portal rectを取得する。
 2. Portalとviewportの交差矩形を求める。
 3. 交差領域がなければ描画対象から外す。
-4. Projection Profileとfull Portal rectからCamera Y、Camera距離、Render Camera FOVを導出する。
+4. Projection Profileとfull Portal rectからCamera Y、Camera距離、Render Camera FOV、可視幅を導出する。
 5. Motion Policyによる追加演出を適用する。
 6. 交差矩形をscissorとしてSceneを描画する。
 
