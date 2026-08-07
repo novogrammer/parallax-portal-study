@@ -36,7 +36,7 @@
 - CSS pxとvwを端末種別から独立して扱える。
 - 部分表示時に交差矩形をFOVまたはCamera Yの計算へ使わない。
 - Scene内の実際のZ距離に応じて透視投影上の視差が変化する。
-- SceneまたはProfile固有値による条件分岐をPortal Geometryへ埋め込まない。
+- Scene IDやProfile IDによる条件分岐をPortal Geometryへ埋め込まない。
 - Portalの描画順が各PortalのCamera計算へ影響しない。
 - 表示対象Portalの有無にかかわらずrequestAnimationFrameを継続する。
 - Render Camera FOV Yとfixed Canvasのaspectから水平FOVを一意に導出できる。

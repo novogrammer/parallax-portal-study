@@ -28,7 +28,7 @@ Renderer Adapter ---> fixed Canvas ---> Scene
 - Portalとviewportの交差矩形はscissorだけに使う。
 - 部分表示時もCameraと構図を切り替えず、描画範囲だけを狭める。
 - 複数Portalはそれぞれ独立したScene、Camera、Projection Profileを持てる。
-- Camera XはSceneごとの初期値に固定し、PortalのX位置やスクロールでは動かさない。
+- Camera Xは初期値に固定し、PortalのX位置やスクロールでは動かさない。
 - 左右に寄ったPortalは、Canvas全体へ投影されたSceneの対応領域をそのままscissorする。
 - CanvasをDOMより背面に置く場合、Portalとして見せる領域はCanvasを遮らないレイヤー構成にする。
 
@@ -49,9 +49,8 @@ Renderer Adapter ---> fixed Canvas ---> Scene
 - Yは上向きが正
 - Cameraは回転なしで負のZ方向を見る
 - Cameraのupは正のY方向
-- Camera XはSceneごとの初期値に固定
+- Camera Xは初期値に固定
 - Reference Planeは初期状態で `z = 0`
-- Sceneの表示物は原則として `z < 0`
 - `1 world unit = 1m`
 
 vertical FOVの上側は3D空間の正のY方向、下側は負のY方向に対応する。この向きはスクロール中も反転させない。
@@ -60,7 +59,7 @@ vertical FOVの上側は3D空間の正のY方向、下側は負のY方向に対�
 
 ### Scene
 
-3Dコンテンツと、その座標、範囲、安全領域、推奨深度などの契約を持つ。Sceneは推奨Projection Profileを提示できるが、Profileと一対一には固定しない。
+描画対象となる3Dコンテンツ。長さはm、座標方向は共通定義に従い、オブジェクトを実際の3D位置へ配置する。表示範囲はCameraのfrustumとPortalのscissorによって決まり、Sceneはsafe area、推奨深度、構図を規定しない。
 
 ### Projection Profile
 
@@ -108,15 +107,6 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 
 基本Camera YはPortal Geometryがclampなしの線形補間で求め、Motion Policyでは変更しない。
 
-### Scene Contract
-
-- 座標系とm単位
-- Scene bounds、Reference Plane、構図基準点
-- near / farの有効範囲
-- Profileごとのsafe area
-- 背景、fog、lightの所有者
-- 読み込み中、失敗時、WebGL unavailable時の扱い
-
 ### Runtime
 
 - fixed Canvasの生成とresize
@@ -145,4 +135,4 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 5. Motion Policyによる追加演出を適用する。
 6. 交差矩形をscissorとしてSceneを描画する。
 
-SceneまたはProfile固有値による条件分岐をPortal Geometryへ埋め込まない。
+Scene IDやProfile IDによる条件分岐をPortal Geometryへ埋め込まない。

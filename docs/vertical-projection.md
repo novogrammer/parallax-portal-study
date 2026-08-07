@@ -147,4 +147,4 @@ full Portal rectの幅を `portalWidth` とすると、Portal内で見える幅�
 portalVisibleWidthMeters = portalWidth * metersPerCssPixel
 ```
 
-独立した基準幅、contain、coverは設定しない。Camera XはSceneごとの初期値に固定し、PortalのX位置からRegistrationしない。左右に寄ったPortalは、fixed Canvas上の対応する投影領域をscissorして表示する。
+独立した基準幅、contain、coverは設定しない。Camera Xは初期値に固定し、PortalのX位置からRegistrationしない。左右に寄ったPortalは、fixed Canvas上の対応する投影領域をscissorして表示する。
