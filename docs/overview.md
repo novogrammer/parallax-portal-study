@@ -8,6 +8,8 @@ DOM上をスクロールする窓の内側に3D空間を表示し、Scene内の�
 
 Portalのスクロール方向は縦だけとし、表示領域は矩形とする。横方向スクロール、border radiusや任意形状mask、`prefers-reduced-motion` 対応は対象外とする。
 
+将来のWeb実装はVite + TypeScript + Three.jsを使う。SceneはTypeScriptコードからThree.jsのGeometry、Material、Object3Dなどを生成して構築し、GLBなどの外部3Dアセット読み込みは初期対象に含めない。
+
 ## 全体構造
 
 viewport全体を覆う1枚の `position: fixed` Canvasへ、PortalごとのSceneを順番に描画する。各Sceneの表示範囲は、対応するDOM窓とviewportの交差矩形でscissorする。
@@ -61,7 +63,7 @@ vertical FOVの上側は3D空間の正のY方向、下側は負のY方向に対�
 
 ### Scene
 
-描画対象となる3Dコンテンツ。長さはm、座標方向は共通定義に従い、オブジェクトを実際の3D位置へ配置する。表示範囲はCameraのfrustumとPortalのscissorによって決まり、Sceneはsafe area、推奨深度、構図を規定しない。
+TypeScriptコードから生成するThree.jsの3Dコンテンツ。長さはm、座標方向は共通定義に従い、オブジェクトを実際の3D位置へ配置する。表示範囲はCameraのfrustumとPortalのscissorによって決まり、Sceneはsafe area、推奨深度、構図を規定しない。
 
 ### Projection Profile
 
@@ -112,6 +114,7 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 ### Runtime
 
 - `position: fixed` Canvasの生成とresize
+- Three.jsのWebGLRendererとPerspectiveCamera
 - DPR上限
 - scissorとviewportの設定
 - 導出したCamera値の描画エンジンへの適用
