@@ -79,20 +79,14 @@ renderProjectionHeightMeters = Vh * cameraMetersPerCssPixel
 
 `referenceCameraDistance`を維持したまま、fixed Canvas全体へ `renderProjectionHeightMeters` を収めるFOVを描画Cameraへ設定する。
 
-\[
-\mathrm{renderCameraFovY}
-=
-2\arctan
-\left[
-\tan\left(\frac{\mathrm{referenceFovY}}{2}\right)
-\frac{V_h}{h}
-\frac{
-|cameraTopY-cameraBottomY|
-}{
-referenceProjectionHeightMeters
-}
-\right]
-\]
+```text
+renderCameraFovY =
+  2 * atan(
+    tan(referenceFovY / 2)
+    * canvasHeight / portalHeight
+    * cameraTravelHeightMeters / referenceProjectionHeightMeters
+  )
+```
 
 `renderCameraFovY` は導出値であり、Projection Profileには保存しない。DOM窓の現在Y位置はCamera Yにだけ使い、FOV変換には含めない。
 
