@@ -132,16 +132,18 @@ Scene内の単位がmであることは全Scene共通の不変条件とするが
 
 ### 6.3 DOM記述単位との対応
 
-ページのレイアウト記述単位は、SPではvw、PCではCSS pxを使う。一方、Portal Geometryへ渡すviewportとDOM窓の実測矩形は、どちらもCSS pxへ正規化する。
+DOM記述単位は端末区分へ固定せず、Virtual Projection ProfileごとにCSS pxまたはvwを選択する。PC向けレイアウトでvwを使うことも、SP向けレイアウトでCSS pxを使うことも許容する。一方、Portal Geometryへ渡すviewportとDOM窓の実測矩形は、記述単位にかかわらずCSS pxへ正規化する。
 
-対象Sceneの基準DOM窓の高さを、SPでは `Dvw` [vw]、PCでは `Dpx` [CSS px] とすると、設計上の対応は次のとおり。
+対象Sceneの基準DOM窓の高さを `D`、その記述単位を `U` とする。
 
 ```text
-SP: metersPerVw       = Ah / Dvw
-PC: metersPerCssPixel = Ah / Dpx
+layoutUnit = U  // "vw" | "css-px"
+metersPerLayoutUnit = Ah / D
 ```
 
-これらはSceneへ直接与える独立した換算定数ではない。各Sceneの `Ah` と、そのSceneのレイアウトで基準となるDOM窓寸法から導出する。したがって、同じページにあるScene AとScene Bが異なる `Ah`、`phi`、`Dvw` または `Dpx` を持つことを許容する。SPでも実行時のRegistration計算にはレイアウト後の `getBoundingClientRect()` 相当値を使うため、ブラウザの描画処理へvwを直接渡さない。
+`U = "vw"` なら結果の単位はm/vw、`U = "css-px"` ならm/CSS pxになる。この値はSceneへ直接与える独立した換算定数ではない。各Sceneの `Ah` と、そのSceneのレイアウトで基準となるDOM窓寸法 `D` から導出する。したがって、同じページにあるScene AとScene Bが異なる `Ah`、`phi`、`D`、`U` を持つことを許容する。
+
+実行時のRegistration計算には、レイアウト後の `getBoundingClientRect()` 相当値を使う。`U = "vw"` の場合もブラウザが解決した結果をCSS pxとして受け取り、描画処理へvwを直接渡さない。
 
 ここでいうpxはdevice pixelではなくCSS pxである。DPRはCanvasの描画解像度だけに影響し、DOMとReference Planeの寸法対応には含めない。
 
@@ -154,18 +156,17 @@ Portal Configuration[]
 └── portal
     ├── sceneId
     ├── registrationAnchor [m]
-    └── projectionProfiles
-        ├── PC
-        │   ├── idealVerticalFov
-        │   ├── referenceApertureHeightMeters
-        │   └── referenceDomHeightCssPixels
-        └── SP
+    └── projectionProfiles[]
+        └── profile
+            ├── profileId
             ├── idealVerticalFov
             ├── referenceApertureHeightMeters
-            └── referenceDomHeightVw
+            └── referenceDomHeight
+                ├── value
+                └── unit: "css-px" | "vw"
 ```
 
-PCとSPで同じ値を使う場合は共通値を継承してよいが、共通化を必須にはしない。各Sceneの差は設定データとして表し、Portal Geometry内でScene IDやScene数に応じた条件分岐を行わない。
+1つのSceneがレイアウト条件ごとに複数のProfileを持つことを許容する。どのProfileを選ぶかはPage / UIまたはConfigurationの選択責務とし、単位から端末種別を推測しない。各Sceneの差は設定データとして表し、Portal Geometry内でScene ID、Scene数、端末種別に応じた条件分岐を行わない。
 
 ### 6.5 窓面上の実行時スケール
 
@@ -282,7 +283,7 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 - Reference PlaneとRegistration Anchor
 - Scene bounds
 - near / farの有効範囲
-- PC / SPのsafe area
+- レイアウトProfileごとのsafe area
 - 近景、中景、遠景の推奨深度
 - 背景色、fog、ライトの所有者
 - 読み込み中と失敗時の表示
@@ -308,7 +309,8 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 - 見出し、本文、リンク
 - アクセシビリティ
 - レスポンシブレイアウト
-- SPではvw、PCではCSS pxを使うレイアウト記述方針
+- 各PortalでCSS pxまたはvwを選ぶレイアウト記述方針
+- viewport条件に応じて使用するProjection Profileを選ぶ規則
 - Canvasより前面に置く窓枠
 
 ## 10. 一般化後も維持したい不変条件
@@ -338,8 +340,8 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 - 背景、fog、ライト
 - DPR上限
 - 描画ループの停止条件
-- PC / SPで同一Sceneを使うかどうか
-- 各SceneのPC用基準DOM高（CSS px）とSP用基準DOM高（vw）
+- レイアウトProfile間で同一Sceneを使うかどうか
+- 各Scene Profileの基準DOM高と記述単位（CSS pxまたはvw）
 
 ## 12. 実装前の検証ケース
 
@@ -356,8 +358,9 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 | 横長、正方形、縦長 | 縦横比が変わってもAnchorが一致する |
 | resize中 | 位置とFOVが不連続に跳ばない |
 | ブラウザズーム | CSS px基準の位置合わせが維持される |
-| SPのvwレイアウト | vwで指定した窓とReference Plane上のmの対応が維持される |
-| PCのpxレイアウト | CSS pxで指定した窓とReference Plane上のmの対応が維持される |
+| vw指定のProfile | 端末区分にかかわらず、vwで指定した窓とReference Plane上のmの対応が維持される |
+| CSS px指定のProfile | 端末区分にかかわらず、CSS pxで指定した窓とReference Plane上のmの対応が維持される |
+| PC幅でvw指定 | PC相当のviewportでも単位をvwとして解決できる |
 | progressが範囲外 | ポリシーどおりclampまたは外挿される |
 | reduced motion | 位置合わせを維持したまま演出だけを止められる |
 
@@ -365,7 +368,8 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 
 - Reference Plane上のAnchorとDOM窓中央の誤差が1 CSS px以内である。
 - Sceneごとに定義した理想FOVと基準空間高からCamera距離を一意に導出できる。
-- SP / PCとも、DOM記述単位を独立した固定換算率としてSceneへ埋め込まない。
+- CSS px / vwとも、DOM記述単位を独立した固定換算率としてSceneへ埋め込まない。
+- 単位からPC / SPなどの端末種別を推測しない。
 - 同じ深度にある点はCamera移動に対して同じ割合で移動して見える。
 - 深い位置にある点ほど、Reference Planeに近い点より見かけの移動量が小さい。
 - DOM窓がviewport境界を横切っても投影結果が不連続に変化しない。
@@ -381,7 +385,7 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 - Portalが横方向にもスクロールするケースを初期対象へ含めるか。
 - DOM窓にborder radiusや任意形状maskがある場合のclip責務。
 - 1 Canvas + scissorを必須とするか、Runtime Policyの一方式とするか。
-- PC / SPの構図差をCamera設定で扱うか、Scene Contractのvariantで扱うか。
+- レイアウト条件による構図差をCamera設定で扱うか、Scene ContractのProfileで扱うか。
 - 常時RAF、dirty rendering、IntersectionObserver併用のどれを初期実装とするか。
 
 未決事項は実装によって暗黙に確定させず、設計段階で選択理由を記録する。
@@ -426,6 +430,6 @@ Renderer Adapter  ->  Three.js Scene
 - Scene内の長さはmで統一する。
 - 複数Sceneを配置し、それぞれが独立したVirtual Projection Profileを持てる構造とする。
 - 各Sceneで理想FOVを先に決め、次にReference Plane上の基準空間高をmで定義する。
-- 各SceneについてSPはvw、PCはCSS pxで基準DOM寸法を定義し、mとの対応はそのSceneのVirtual Projection Profileから導出する。
+- 各Scene Profileが基準DOM寸法の単位としてCSS pxまたはvwを選び、mとの対応をそのProfileから導出する。単位とPC / SPは結び付けない。
 - 次のセッションでは、まず本書とルートの `AGENTS.md` を読む。
 - 次の優先作業は、基本式の数値検算と未決事項の整理。
