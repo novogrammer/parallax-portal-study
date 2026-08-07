@@ -39,6 +39,6 @@
 - Scene IDやProfile IDによる条件分岐をPortal Geometryへ埋め込まない。
 - Portalの描画順が各PortalのCamera計算へ影響しない。
 - 表示対象Portalの有無にかかわらずrequestAnimationFrameを継続する。
-- Render Camera FOV Yとfixed Canvasのaspectから水平FOVを一意に導出できる。
+- Render Camera FOV Yと画面全体の `position: fixed` Canvasのaspectから水平FOVを一意に導出できる。
 - CanvasとPortalの可視幅を共通のm/CSS pxスケールから導出できる。
 - Camera XをPortal位置またはスクロールによって変更しない。

@@ -10,7 +10,9 @@ Portalのスクロール方向は縦だけとし、表示領域は矩形とす�
 
 ## 全体構造
 
-viewport全体を覆う1枚のfixed Canvasへ、PortalごとのSceneを順番に描画する。各Sceneの表示範囲は、対応するDOM窓とviewportの交差矩形でscissorする。
+viewport全体を覆う1枚の `position: fixed` Canvasへ、PortalごとのSceneを順番に描画する。各Sceneの表示範囲は、対応するDOM窓とviewportの交差矩形でscissorする。
+
+fixedはCanvas要素のCSS配置を指す。Canvasはスクロールで移動しないが、viewportのresize時にはCSS寸法、描画バッファ、Camera aspectを現在のviewportへ合わせて更新する。Canvas寸法、Camera、描画内容を静止させる意味ではない。
 
 ```text
 Page / DOM
@@ -21,7 +23,7 @@ Portal Geometry <--- Projection Profile
     |
     | Camera position, projection, scissor rect
     v
-Renderer Adapter ---> fixed Canvas ---> Scene
+Renderer Adapter ---> position: fixed Canvas ---> Scene
 ```
 
 - full Portal rectはCameraと投影の計算に使う。
@@ -96,7 +98,7 @@ PortalConfiguration
 - DOM矩形とviewportの交差判定
 - スクロール進行値とCamera Yの計算
 - Reference FOVからRender Camera FOVへの変換
-- fixed Canvasのaspectから水平FOVと可視幅を導出
+- `position: fixed` Canvasのaspectから水平FOVと可視幅を導出
 - 入力値の検証
 
 DOM型、Three.js型、描画ループには依存しない純粋な計算とする。
@@ -109,7 +111,7 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 
 ### Runtime
 
-- fixed Canvasの生成とresize
+- `position: fixed` Canvasの生成とresize
 - DPR上限
 - scissorとviewportの設定
 - 導出したCamera値の描画エンジンへの適用

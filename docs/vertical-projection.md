@@ -2,13 +2,13 @@
 
 ## 目的
 
-Projection Profileで指定する基準FOV、DOMスクロールに連動するCamera Y、fixed Canvasの描画Cameraへ設定するFOVを分離して定義する。
+Projection Profileで指定する基準FOV、DOMスクロールに連動するCamera Y、画面全体の `position: fixed` Canvasで使う描画CameraのFOVを分離して定義する。
 
 ## 記号
 
 | 記号 | 正式名称 | 意味 | 単位 |
 | --- | --- | --- | --- |
-| `Vh` | canvas height | fixed Canvas / viewportの高さ | CSS px |
+| `Vh` | canvas height | `position: fixed` Canvas / viewportの高さ | CSS px |
 | `y` | portal top | full Portal rectの上端 | CSS px |
 | `h` | portal height | full Portal rectの高さ | CSS px |
 | `phiR` | `referenceFovY` | 構図設計上の基準vertical FOV | rad |
@@ -78,7 +78,7 @@ cameraMetersPerCssPixel = cameraTravelHeightMeters / h
 renderProjectionHeightMeters = Vh * cameraMetersPerCssPixel
 ```
 
-`referenceCameraDistance`を維持したまま、fixed Canvas全体へ `renderProjectionHeightMeters` を収めるFOVを描画Cameraへ設定する。
+`referenceCameraDistance`を維持したまま、画面全体のCanvasへ `renderProjectionHeightMeters` を収めるFOVを描画Cameraへ設定する。
 
 ```text
 renderCameraFovY =
@@ -110,7 +110,7 @@ FOV、進行値、Camera Yにはclip前のfull Portal rectの `y` と `h` を使
 
 ## 横方向の導出
 
-CameraのaspectにはPortalのaspectではなく、fixed Canvas全体のaspectを使う。
+CameraのaspectにはPortalのaspectではなく、画面全体のCanvasのaspectを使う。
 
 ```text
 canvasAspect = canvasWidth / canvasHeight
@@ -142,4 +142,4 @@ full Portal rectの幅を `portalWidth` とすると、Portal内で見える幅�
 portalVisibleWidthMeters = portalWidth * metersPerCssPixel
 ```
 
-独立した基準幅、contain、coverは設定しない。Camera Xは初期値に固定し、PortalのX位置からRegistrationしない。左右に寄ったPortalは、fixed Canvas上の対応する投影領域をscissorして表示する。
+独立した基準幅、contain、coverは設定しない。Camera Xは初期値に固定し、PortalのX位置からRegistrationしない。左右に寄ったPortalは、画面全体のCanvas上の対応する投影領域をscissorして表示する。
