@@ -68,6 +68,10 @@ Reference Plane上でDOM窓の基準位置に合わせる点。初期方針で�
 
 Registration後のCameraへ追加する演出的な移動規則。
 
+### Virtual Projection Profile
+
+Sceneごとの理想的な見え方を定義する投影契約。理想的なvertical FOV、Reference Plane上で画面に収める範囲、およびその範囲の単位を含む。mとCSS pxまたはvwの固定換算表ではなく、投影条件から両者の対応を導出するために使う。
+
 ## 5. 座標系
 
 ### DOM / viewport座標
@@ -84,7 +88,7 @@ Registration後のCameraへ追加する演出的な移動規則。
 - Cameraは回転なしで負のZ方向を見ることを初期基準とする
 - Reference Planeは `z = 0`
 - Sceneの表示物は原則として `z < 0`
-- 単位はScene Contractで明示する。初期候補は1 unit = 1 m
+- 長さの単位はmとし、`1 world unit = 1 m` とする
 
 DOMのY軸と3DのY軸は向きが反対なので、式の符号を変更する際は必ず投影結果で確認する。
 
@@ -101,20 +105,48 @@ portal center: Rc = (x + w / 2, y + h / 2)
 
 reference aperture height: Ah
 registration anchor: A = (Ax, Ay, 0)
-reference vertical FOV: phi
+ideal reference vertical FOV: phi
 ```
 
 - `Vw`, `Vh`, `x`, `y`, `w`, `h` の単位はCSS px
-- `Ah`, `Ax`, `Ay` の単位は3D world unit
+- `Ah`, `Ax`, `Ay` の単位はm
 - `phi` は0度より大きく180度より小さい
 - `w` と `h` は0より大きい
 
-### 6.2 窓面上のスケール
+### 6.2 Sceneごとのフレーミング定義
 
-DOM窓の1 CSS pxに対応するReference Plane上のworld unitを求める。
+FOVを1m当たりの換算値として定義しない。各Sceneについて、まず演出上理想となるvertical FOV `phi` を決め、次にそのFOVでReference Plane上に収める高さ `Ah` をmで定義する。
 
 ```text
-worldUnitsPerCssPixel = Ah / h
+Sceneごとの理想FOV: phi
+Sceneごとの基準空間高: Ah [m]
+```
+
+`phi` と `Ah` はVirtual Projection Profileの入力であり、Camera距離とDOM単位との対応は導出値とする。同じ `Ah` でも `phi` が異なればCamera距離と奥行きの見え方が変わるため、`phi` と `Ah` はそれぞれ独立した演出上の意味を持つ。
+
+初期アルゴリズムは高さ基準とする。将来、幅基準、contain、coverを採用する場合は、どの軸の何mを画面に収めるかをProjection Policyとして明示する。
+
+### 6.3 DOM記述単位との対応
+
+ページのレイアウト記述単位は、SPではvw、PCではCSS pxを使う。一方、Portal Geometryへ渡すviewportとDOM窓の実測矩形は、どちらもCSS pxへ正規化する。
+
+基準となるDOM窓の高さを、SPでは `Dvw` [vw]、PCでは `Dpx` [CSS px] とすると、設計上の対応は次のとおり。
+
+```text
+SP: metersPerVw       = Ah / Dvw
+PC: metersPerCssPixel = Ah / Dpx
+```
+
+これらはSceneへ直接与える独立した換算定数ではない。Sceneごとの `Ah` と、各レイアウトで基準となるDOM窓寸法から導出する。SPでも実行時のRegistration計算にはレイアウト後の `getBoundingClientRect()` 相当値を使うため、ブラウザの描画処理へvwを直接渡さない。
+
+ここでいうpxはdevice pixelではなくCSS pxである。DPRはCanvasの描画解像度だけに影響し、DOMとReference Planeの寸法対応には含めない。
+
+### 6.4 窓面上の実行時スケール
+
+DOM窓の1 CSS pxに対応するReference Plane上のmを求める。
+
+```text
+metersPerCssPixel = Ah / h
 ```
 
 初期アルゴリズムではXとYに同じスケールを使う。この場合、DOM窓を通して見えるReference Planeの幅は次の値になる。
@@ -125,7 +157,7 @@ visibleReferenceWidth = Ah * w / h
 
 固定の基準幅を優先する場合は、contain、cover、非対称投影など別の投影ポリシーが必要になるため、未決事項として扱う。
 
-### 6.3 基準Camera距離
+### 6.5 基準Camera距離
 
 Reference Planeの高さ `Ah` が基準FOV `phi` に収まるCamera距離は次のとおり。
 
@@ -133,7 +165,7 @@ Reference Planeの高さ `Ah` が基準FOV `phi` に収まるCamera距離は次�
 cameraZ = Ah / (2 * tan(phi / 2))
 ```
 
-### 6.4 CameraのX / Y位置
+### 6.6 CameraのX / Y位置
 
 Registration AnchorをDOM窓中央へ投影するCamera位置は次のとおり。
 
@@ -146,7 +178,7 @@ cameraY = Ay + (Rc.y - Vc.y) * scale
 
 DOM窓がviewport中央にある場合、CameraのX / YはAnchorと一致する。DOM窓が下へ移動すると、Cameraは3D空間上で上向きに移動し、Reference Plane上のAnchorが窓中央へ投影され続ける。
 
-### 6.5 viewport全体に対するFOV
+### 6.7 viewport全体に対するFOV
 
 固定Canvas全体をviewportとして投影し、その一部をDOM窓で切り抜く場合のvertical FOVは次のとおり。
 
@@ -218,7 +250,9 @@ Registrationへ加える演出を担当する。
 
 Portalへ渡す3Dコンテンツの条件を定義する。
 
-- 座標系と単位
+- 座標系とm単位
+- SceneごとのVirtual Projection Profile
+- 理想的なvertical FOVと基準空間高
 - Reference PlaneとRegistration Anchor
 - Scene bounds
 - near / farの有効範囲
@@ -248,12 +282,15 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 - 見出し、本文、リンク
 - アクセシビリティ
 - レスポンシブレイアウト
+- SPではvw、PCではCSS pxを使うレイアウト記述方針
 - Canvasより前面に置く窓枠
 
 ## 10. 一般化後も維持したい不変条件
 
 - DOMコンテンツと3D装飾の責務を分ける。
 - DOM窓と3D Reference Planeの対応を数式で説明できる。
+- Scene内の長さをmで統一する。
+- mとvwまたはCSS pxの対応を、Sceneの投影条件とDOM窓寸法から導出する。
 - viewport外のPortalは描画しない。
 - 複数Portalの同時表示を扱える。
 - Scene内の実際のZ距離から透視投影上の視差を作る。
@@ -262,8 +299,8 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 
 ## 11. 設定またはポリシーへ移す値
 
-- 基準FOV
-- 基準窓面の高さと幅
+- Sceneごとの理想的な基準FOV
+- Sceneごとの基準窓面の高さと幅（m）
 - Registration Anchor
 - Cameraのnear / far
 - clampの有無
@@ -290,12 +327,16 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 | 横長、正方形、縦長 | 縦横比が変わってもAnchorが一致する |
 | resize中 | 位置とFOVが不連続に跳ばない |
 | ブラウザズーム | CSS px基準の位置合わせが維持される |
+| SPのvwレイアウト | vwで指定した窓とReference Plane上のmの対応が維持される |
+| PCのpxレイアウト | CSS pxで指定した窓とReference Plane上のmの対応が維持される |
 | progressが範囲外 | ポリシーどおりclampまたは外挿される |
 | reduced motion | 位置合わせを維持したまま演出だけを止められる |
 
 ## 13. 合格条件の初期案
 
 - Reference Plane上のAnchorとDOM窓中央の誤差が1 CSS px以内である。
+- Sceneごとに定義した理想FOVと基準空間高からCamera距離を一意に導出できる。
+- SP / PCとも、DOM記述単位を独立した固定換算率としてSceneへ埋め込まない。
 - 同じ深度にある点はCamera移動に対して同じ割合で移動して見える。
 - 深い位置にある点ほど、Reference Planeに近い点より見かけの移動量が小さい。
 - DOM窓がviewport境界を横切っても投影結果が不連続に変化しない。
@@ -310,7 +351,6 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 - Portalが横方向にもスクロールするケースを初期対象へ含めるか。
 - DOM窓にborder radiusや任意形状maskがある場合のclip責務。
 - 1 Canvas + scissorを必須とするか、Runtime Policyの一方式とするか。
-- Sceneの単位を常に1 unit = 1 mとするか、Sceneごとに許可するか。
 - PC / SPの構図差をCamera設定で扱うか、Scene Contractのvariantで扱うか。
 - 常時RAF、dirty rendering、IntersectionObserver併用のどれを初期実装とするか。
 
@@ -353,5 +393,8 @@ Renderer Adapter  ->  Three.js Scene
 - `reference/` の内容は `.gitignore` 対象で、`.gitkeep` のみ管理対象にできる。
 - 参照先は読み取り専用であり、修正しない。
 - 現在はアルゴリズム設計段階であり、Webアプリケーションは未実装。
+- Scene内の長さはmで統一する。
+- Sceneごとに理想FOVを先に決め、次にReference Plane上の基準空間高をmで定義する。
+- SPはvw、PCはCSS pxでレイアウトを記述し、mとの対応はVirtual Projection ProfileとDOM窓寸法から導出する。
 - 次のセッションでは、まず本書とルートの `AGENTS.md` を読む。
 - 次の優先作業は、基本式の数値検算と未決事項の整理。
