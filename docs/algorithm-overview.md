@@ -86,11 +86,12 @@ Sceneごとの理想的な見え方を定義する投影契約。理想的なver
 - Xは右向きが正
 - Yは上向きが正
 - Cameraは回転なしで負のZ方向を見ることを初期基準とする
+- Cameraのupは正のY方向とする
 - Reference Planeは `z = 0`
 - Sceneの表示物は原則として `z < 0`
 - 長さの単位はmとし、`1 world unit = 1 m` とする
 
-DOMのY軸と3DのY軸は向きが反対なので、式の符号を変更する際は必ず投影結果で確認する。
+初期基準では、vertical FOVの上側がReference Planeの正のY方向、下側が負のY方向に対応する。DOMのY軸と3DのY軸は向きが反対なので、DOM上端はReference Planeの正のY側、DOM下端は負のY側へ対応する。この対応はスクロール中もPortal Registrationの不変条件として維持する。
 
 ## 6. Portal Registrationの基本式
 
@@ -205,6 +206,15 @@ cameraY = Ay + (Rc.y - Vc.y) * scale
 
 DOM窓がviewport中央にある場合、CameraのX / YはAnchorと一致する。DOM窓が下へ移動すると、Cameraは3D空間上で上向きに移動し、Reference Plane上のAnchorが窓中央へ投影され続ける。
 
+CameraがRegistration Anchorを中心にReference Planeの高さ `Ah` を捉える場合、上下端は次のとおり。
+
+```text
+referenceTopY    = Ay + Ah / 2
+referenceBottomY = Ay - Ah / 2
+```
+
+この上下関係はRegistration Cameraに対して定義する。Motion PolicyによるCamera回転はRegistration後の演出であり、回転によってDOM窓との厳密な対応から外れる場合は、意図的な演出上の差として扱う。
+
 ### 6.8 viewport全体に対するFOV
 
 固定Canvas全体をviewportとして投影し、その一部をDOM窓で切り抜く場合のvertical FOVは次のとおり。
@@ -317,6 +327,8 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 
 - DOMコンテンツと3D装飾の責務を分ける。
 - DOM窓と3D Reference Planeの対応を数式で説明できる。
+- DOM上端をReference Planeの正のY側、DOM下端を負のY側へ対応させる。
+- スクロール中もvertical FOVの上側と下側のY方向を反転させない。
 - Scene内の長さをmで統一する。
 - mとvwまたはCSS pxの対応を、Sceneの投影条件とDOM窓寸法から導出する。
 - viewport外のPortalは描画しない。
@@ -352,6 +364,7 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 | 幅50%、右寄せ | 左寄せと左右対称の結果になる |
 | viewportより大きい窓 | 部分表示でも構図が跳ばない |
 | 上下から部分的に見える窓 | clip領域だけが変化し、投影は連続する |
+| 窓の上下方向の移動 | DOM上端がReference Planeの正のY側、下端が負のY側へ対応し続ける |
 | 2つの窓が同時表示 | 各Sceneが対応する窓だけに描画される |
 | 異なるサイズの複数窓 | 各窓が独立したFOVとRegistrationを持つ |
 | 異なる投影設定の複数Scene | Sceneごとのm範囲、FOV、px／vw設定が相互に影響しない |
@@ -367,6 +380,7 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 ## 13. 合格条件の初期案
 
 - Reference Plane上のAnchorとDOM窓中央の誤差が1 CSS px以内である。
+- vertical FOVの上端がReference Planeの正のY側、下端が負のY側へ投影される。
 - Sceneごとに定義した理想FOVと基準空間高からCamera距離を一意に導出できる。
 - CSS px / vwとも、DOM記述単位を独立した固定換算率としてSceneへ埋め込まない。
 - 単位からPC / SPなどの端末種別を推測しない。
