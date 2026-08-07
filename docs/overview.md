@@ -1,0 +1,142 @@
+# Parallax Portal 設計概要
+
+## 目的
+
+DOM上をスクロールする窓の内側に3D空間を表示し、Scene内の実際の奥行きから視差を生じさせる仕組みを、特定のSceneや描画ライブラリに依存しない形で定義する。
+
+現段階ではMarkdownによる設計だけを対象とし、アプリケーションコードやビルド設定は作成しない。
+
+## 全体構造
+
+viewport全体を覆う1枚のfixed Canvasへ、PortalごとのSceneを順番に描画する。各Sceneの表示範囲は、対応するDOM窓とviewportの交差矩形でscissorする。
+
+```text
+Page / DOM
+    |
+    | full Portal rect
+    v
+Portal Geometry <--- Projection Profile
+    |
+    | Camera position, projection, scissor rect
+    v
+Renderer Adapter ---> fixed Canvas ---> Scene
+```
+
+- full Portal rectはCameraと投影の計算に使う。
+- Portalとviewportの交差矩形はscissorだけに使う。
+- 部分表示時もCameraと構図を切り替えず、描画範囲だけを狭める。
+- 複数Portalはそれぞれ独立したScene、Camera、Projection Profileを持てる。
+- CanvasをDOMより背面に置く場合、Portalとして見せる領域はCanvasを遮らないレイヤー構成にする。
+
+垂直方向の計算は[垂直投影モデル](./vertical-projection.md)、確認事項と未決事項は[検証](./validation.md)を正本とする。
+
+## 座標系と単位
+
+### DOM / viewport
+
+- 原点はviewport左上
+- Xは右向きが正
+- Yは下向きが正
+- 実行時計算の単位はCSS px
+
+### 3D
+
+- Xは右向きが正
+- Yは上向きが正
+- Cameraは回転なしで負のZ方向を見る
+- Cameraのupは正のY方向
+- Reference Planeは初期状態で `z = 0`
+- Sceneの表示物は原則として `z < 0`
+- `1 world unit = 1m`
+
+vertical FOVの上側は3D空間の正のY方向、下側は負のY方向に対応する。この向きはスクロール中も反転させない。
+
+## 概念モデル
+
+### Scene
+
+3Dコンテンツと、その座標、範囲、安全領域、推奨深度などの契約を持つ。Sceneは推奨Projection Profileを提示できるが、Profileと一対一には固定しない。
+
+### Projection Profile
+
+Sceneの見せ方を定義する。同じSceneを異なるPortalや構図で再利用できるよう、Scene本体から分離する。
+
+```text
+ProjectionProfile
+├── profileId
+├── referenceFovY
+├── referenceProjectionHeightMeters
+├── cameraTopY
+├── cameraBottomY
+└── referenceDomHeight
+    ├── value
+    └── unit: "css-px" | "vw"
+```
+
+### Portal Configuration
+
+DOM窓、Scene、Projection Profileの組み合わせを選択する。
+
+```text
+PortalConfiguration
+├── sceneId
+└── projectionProfileId
+```
+
+`renderCameraFovY`、Camera Y移動高、Camera距離、スクロール進行値は設定として保持せず、実行時に導出する。
+
+## 責務
+
+### Portal Geometry
+
+- DOM矩形とviewportの交差判定
+- スクロール進行値とCamera位置の計算
+- Reference FOVからRender Camera FOVへの変換
+- 入力値の検証
+
+DOM型、Three.js型、描画ループには依存しない純粋な計算とする。
+
+### Motion Policy
+
+- Camera Yの進行規則
+- clamp、easing、範囲外の外挿
+- 追加の移動、回転、pointer入力
+- `prefers-reduced-motion` 時の縮退
+
+### Scene Contract
+
+- 座標系とm単位
+- Scene bounds、Reference Plane、構図基準点
+- near / farの有効範囲
+- Profileごとのsafe area
+- 背景、fog、lightの所有者
+- 読み込み中、失敗時、WebGL unavailable時の扱い
+
+### Runtime
+
+- fixed Canvasの生成とresize
+- DPR上限
+- scissorとviewportの設定
+- 導出したCamera値の描画エンジンへの適用
+- 描画対象Portalの選別
+- Sceneの読み込みと破棄
+
+### Page / UI
+
+- DOM窓と通常コンテンツの配置
+- CSS pxまたはvwによるレイアウト
+- viewport条件に応じたProjection Profileの選択
+- アクセシビリティと前面レイヤー
+
+## 1フレームのデータフロー
+
+各Portalについて次の順に処理する。
+
+1. viewport寸法とfull Portal rectを取得する。
+2. Portalとviewportの交差矩形を求める。
+3. 交差領域がなければ描画対象から外す。
+4. Projection Profileとfull Portal rectからCamera Y、Camera距離、Render Camera FOVを導出する。
+5. Motion Policyによる追加演出を適用する。
+6. 交差矩形をscissorとしてSceneを描画する。
+
+SceneまたはProfile固有値による条件分岐をPortal Geometryへ埋め込まない。
