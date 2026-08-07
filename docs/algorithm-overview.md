@@ -46,7 +46,7 @@ finalCamera = registrationCamera + artisticOffset(progress)
 
 ### Portal
 
-DOM窓、対応するScene、Camera、設定をまとめた論理単位。
+DOM窓、対応するScene、Camera、Scene固有の設定をまとめた論理単位。ページ上に複数配置でき、各Portalは独立したVirtual Projection Profileを持つ。
 
 ### Aperture
 
@@ -70,7 +70,7 @@ Registration後のCameraへ追加する演出的な移動規則。
 
 ### Virtual Projection Profile
 
-Sceneごとの理想的な見え方を定義する投影契約。理想的なvertical FOV、Reference Plane上で画面に収める範囲、およびその範囲の単位を含む。mとCSS pxまたはvwの固定換算表ではなく、投影条件から両者の対応を導出するために使う。
+Sceneごとの理想的な見え方を定義する投影契約。理想的なvertical FOV、Reference Plane上で画面に収める範囲、およびその範囲に対応するDOM寸法を含む。共通の固定換算表ではなく、Sceneごとの投影条件からmとCSS pxまたはvwの対応を導出するために使う。
 
 ## 5. 座標系
 
@@ -95,6 +95,8 @@ DOMのY軸と3DのY軸は向きが反対なので、式の符号を変更する�
 ## 6. Portal Registrationの基本式
 
 ### 6.1 入力
+
+以下の入力は全Sceneで共有する単一設定ではなく、Portalごとに評価する。`Ah` と `phi` は対象PortalのVirtual Projection Profileから受け取る。
 
 ```text
 viewport size: V = (Vw, Vh)
@@ -124,24 +126,48 @@ Sceneごとの基準空間高: Ah [m]
 
 `phi` と `Ah` はVirtual Projection Profileの入力であり、Camera距離とDOM単位との対応は導出値とする。同じ `Ah` でも `phi` が異なればCamera距離と奥行きの見え方が変わるため、`phi` と `Ah` はそれぞれ独立した演出上の意味を持つ。
 
+Scene内の単位がmであることは全Scene共通の不変条件とするが、画面内に収める高さ `Ah` はSceneごとに異なってよい。「Sceneごとにメートルを定義する」とは、mそのものの尺度を変えることではなく、そのSceneの基準構図へ収める範囲をmで指定することを指す。
+
 初期アルゴリズムは高さ基準とする。将来、幅基準、contain、coverを採用する場合は、どの軸の何mを画面に収めるかをProjection Policyとして明示する。
 
 ### 6.3 DOM記述単位との対応
 
 ページのレイアウト記述単位は、SPではvw、PCではCSS pxを使う。一方、Portal Geometryへ渡すviewportとDOM窓の実測矩形は、どちらもCSS pxへ正規化する。
 
-基準となるDOM窓の高さを、SPでは `Dvw` [vw]、PCでは `Dpx` [CSS px] とすると、設計上の対応は次のとおり。
+対象Sceneの基準DOM窓の高さを、SPでは `Dvw` [vw]、PCでは `Dpx` [CSS px] とすると、設計上の対応は次のとおり。
 
 ```text
 SP: metersPerVw       = Ah / Dvw
 PC: metersPerCssPixel = Ah / Dpx
 ```
 
-これらはSceneへ直接与える独立した換算定数ではない。Sceneごとの `Ah` と、各レイアウトで基準となるDOM窓寸法から導出する。SPでも実行時のRegistration計算にはレイアウト後の `getBoundingClientRect()` 相当値を使うため、ブラウザの描画処理へvwを直接渡さない。
+これらはSceneへ直接与える独立した換算定数ではない。各Sceneの `Ah` と、そのSceneのレイアウトで基準となるDOM窓寸法から導出する。したがって、同じページにあるScene AとScene Bが異なる `Ah`、`phi`、`Dvw` または `Dpx` を持つことを許容する。SPでも実行時のRegistration計算にはレイアウト後の `getBoundingClientRect()` 相当値を使うため、ブラウザの描画処理へvwを直接渡さない。
 
 ここでいうpxはdevice pixelではなくCSS pxである。DPRはCanvasの描画解像度だけに影響し、DOMとReference Planeの寸法対応には含めない。
 
-### 6.4 窓面上の実行時スケール
+### 6.4 複数Sceneの設定単位
+
+ページはPortalの集合として構成し、投影設定をPortalごとに保持する。概念上の設定構造は次のとおり。
+
+```text
+Portal Configuration[]
+└── portal
+    ├── sceneId
+    ├── registrationAnchor [m]
+    └── projectionProfiles
+        ├── PC
+        │   ├── idealVerticalFov
+        │   ├── referenceApertureHeightMeters
+        │   └── referenceDomHeightCssPixels
+        └── SP
+            ├── idealVerticalFov
+            ├── referenceApertureHeightMeters
+            └── referenceDomHeightVw
+```
+
+PCとSPで同じ値を使う場合は共通値を継承してよいが、共通化を必須にはしない。各Sceneの差は設定データとして表し、Portal Geometry内でScene IDやScene数に応じた条件分岐を行わない。
+
+### 6.5 窓面上の実行時スケール
 
 DOM窓の1 CSS pxに対応するReference Plane上のmを求める。
 
@@ -157,7 +183,7 @@ visibleReferenceWidth = Ah * w / h
 
 固定の基準幅を優先する場合は、contain、cover、非対称投影など別の投影ポリシーが必要になるため、未決事項として扱う。
 
-### 6.5 基準Camera距離
+### 6.6 基準Camera距離
 
 Reference Planeの高さ `Ah` が基準FOV `phi` に収まるCamera距離は次のとおり。
 
@@ -165,7 +191,7 @@ Reference Planeの高さ `Ah` が基準FOV `phi` に収まるCamera距離は次�
 cameraZ = Ah / (2 * tan(phi / 2))
 ```
 
-### 6.6 CameraのX / Y位置
+### 6.7 CameraのX / Y位置
 
 Registration AnchorをDOM窓中央へ投影するCamera位置は次のとおり。
 
@@ -178,7 +204,7 @@ cameraY = Ay + (Rc.y - Vc.y) * scale
 
 DOM窓がviewport中央にある場合、CameraのX / YはAnchorと一致する。DOM窓が下へ移動すると、Cameraは3D空間上で上向きに移動し、Reference Plane上のAnchorが窓中央へ投影され続ける。
 
-### 6.7 viewport全体に対するFOV
+### 6.8 viewport全体に対するFOV
 
 固定Canvas全体をviewportとして投影し、その一部をDOM窓で切り抜く場合のvertical FOVは次のとおり。
 
@@ -293,6 +319,7 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 - mとvwまたはCSS pxの対応を、Sceneの投影条件とDOM窓寸法から導出する。
 - viewport外のPortalは描画しない。
 - 複数Portalの同時表示を扱える。
+- 各Portalが異なる基準空間高、FOV、基準DOM寸法を持てる。
 - Scene内の実際のZ距離から透視投影上の視差を作る。
 - Scene固有値を共通アルゴリズムへ埋め込まない。
 - DOM窓が部分表示になってもCameraの構図を不連続に変えない。
@@ -312,6 +339,7 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 - DPR上限
 - 描画ループの停止条件
 - PC / SPで同一Sceneを使うかどうか
+- 各SceneのPC用基準DOM高（CSS px）とSP用基準DOM高（vw）
 
 ## 12. 実装前の検証ケース
 
@@ -324,6 +352,7 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 | 上下から部分的に見える窓 | clip領域だけが変化し、投影は連続する |
 | 2つの窓が同時表示 | 各Sceneが対応する窓だけに描画される |
 | 異なるサイズの複数窓 | 各窓が独立したFOVとRegistrationを持つ |
+| 異なる投影設定の複数Scene | Sceneごとのm範囲、FOV、px／vw設定が相互に影響しない |
 | 横長、正方形、縦長 | 縦横比が変わってもAnchorが一致する |
 | resize中 | 位置とFOVが不連続に跳ばない |
 | ブラウザズーム | CSS px基準の位置合わせが維持される |
@@ -341,6 +370,7 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 - 深い位置にある点ほど、Reference Planeに近い点より見かけの移動量が小さい。
 - DOM窓がviewport境界を横切っても投影結果が不連続に変化しない。
 - Portalの描画順が各PortalのCamera計算へ影響しない。
+- あるSceneのVirtual Projection Profileを変更しても、他SceneのCamera計算結果が変化しない。
 - Scene固有のFOV、far、fogなどを共通アルゴリズムの条件分岐で判定しない。
 - Registrationだけを有効にした最小状態で、スクロールに追従するポータルとして成立する。
 
@@ -394,7 +424,8 @@ Renderer Adapter  ->  Three.js Scene
 - 参照先は読み取り専用であり、修正しない。
 - 現在はアルゴリズム設計段階であり、Webアプリケーションは未実装。
 - Scene内の長さはmで統一する。
-- Sceneごとに理想FOVを先に決め、次にReference Plane上の基準空間高をmで定義する。
-- SPはvw、PCはCSS pxでレイアウトを記述し、mとの対応はVirtual Projection ProfileとDOM窓寸法から導出する。
+- 複数Sceneを配置し、それぞれが独立したVirtual Projection Profileを持てる構造とする。
+- 各Sceneで理想FOVを先に決め、次にReference Plane上の基準空間高をmで定義する。
+- 各SceneについてSPはvw、PCはCSS pxで基準DOM寸法を定義し、mとの対応はそのSceneのVirtual Projection Profileから導出する。
 - 次のセッションでは、まず本書とルートの `AGENTS.md` を読む。
 - 次の優先作業は、基本式の数値検算と未決事項の整理。
