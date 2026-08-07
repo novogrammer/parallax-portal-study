@@ -13,6 +13,7 @@
 | 複数Portalを同時表示 | 各Sceneが対応するscissor領域だけに描画される |
 | 同じSceneを異なるProfileで使用 | 各Portalが独立したCamera結果を持つ |
 | 異なるSceneとProfileを使用 | 一方の設定変更が他方へ影響しない |
+| 同じScene IDを複数Portalで使用 | Portalごとに異なるSceneインスタンスが生成される |
 | CSSでvw指定 | `getBoundingClientRect()` のCSS px実測値で計算できる |
 | CSSでpx指定 | `getBoundingClientRect()` のCSS px実測値で同じ計算を使える |
 | resize | 実測DOM矩形とCanvas寸法から連続的に再計算される |
@@ -28,6 +29,11 @@
 | viewport条件が切り替わる | Projection ProfileとScene Variantが一式で再適用される |
 | 条件付きVariantから `otherwise` へ戻る | 以前のScene調整が残らず、`otherwise` の完全な状態になる |
 | Runtimeを破棄 | 登録したMedia Queryの変更listenerが解除される |
+| Camera Yが移動 | Camera Xは `0m`、Camera Zは基準Camera距離、向きは負のZ方向に維持される |
+| 設定値から不正なFOVが導出される | 初期化時に設定例外を投げて処理を終了する |
+| 実行時入力から一時的に不正なFOVが導出される | Cameraを部分更新せず、前回の正常状態全体を維持する |
+| 初回から実行時FOVが不正 | 対象Portalを描画しない |
+| 不正状態が複数フレーム継続 | `console.error` を毎フレーム繰り返さない |
 
 ## 合格条件
 
@@ -50,3 +56,6 @@
 - Media Queryの重複や不一致にかかわらず、優先順位と `otherwise` により常に1つのVariantを選択できる。
 - ブレークポイントとVariantの対応を設定で変更でき、Portal固有の条件分岐を共通選択処理へ追加する必要がない。
 - Variant切り替え後のProjection ProfileとScene状態が、切り替え前のVariantに依存しない。
+- SceneインスタンスをPortal間で共有せず、Scene Variantの調整が他のPortalへ影響しない。
+- Cameraを `(0, cameraY, referenceCameraDistance)` に置き、Camera Yにかかわらず負のZ方向へ向けられる。
+- 不正なRender Camera FOVによって、Camera状態の一部だけが更新されない。

@@ -91,6 +91,16 @@ renderCameraFovY =
 
 `renderCameraFovY` は導出値であり、Projection Profileには保存しない。DOM窓の現在Y位置はCamera Yにだけ使い、FOV変換には含めない。
 
+導出した `renderCameraFovY` は有限値かつ次の範囲でなければならない。
+
+```text
+0 < renderCameraFovY < pi
+```
+
+設定値の前提条件違反は初期化時の設定例外として処理を終了する。resizeなどの実行時入力から一時的に不正な値が導出された場合は、Cameraの一部だけを更新せず、前回の正常なCamera状態全体を維持する。正常な状態が一度もなければ、そのPortalを描画しない。
+
+同じ異常を常時requestAnimationFrameで繰り返し出力せず、正常から異常へ変化した時に `console.error` を一度だけ出す。正常へ戻った後に再び異常になった場合は、改めて出力する。Three.jsへdegreeで渡す境界でも、変換結果が有限値かつ `0 < fov < 180` であることを確認する。
+
 ## 基準投影高とCamera移動高
 
 `referenceProjectionHeightMeters` と `cameraTravelHeightMeters` は常に個別の数値として指定または導出し、一致モードのような分岐を設けない。

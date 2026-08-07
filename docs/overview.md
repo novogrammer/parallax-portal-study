@@ -32,6 +32,7 @@ Renderer Adapter ---> position: fixed Canvas ---> Scene
 - Portalとviewportの交差矩形はscissorだけに使う。
 - 部分表示時もCameraと構図を切り替えず、描画範囲だけを狭める。
 - 複数Portalはそれぞれ独立したScene、Camera、Projection Profileを持てる。
+- SceneインスタンスはPortalごとに生成し、同じ `sceneId` を使うPortal間でも共有しない。
 - Camera Xは初期値に固定し、PortalのX位置やスクロールでは動かさない。
 - 左右に寄ったPortalは、Canvas全体へ投影されたSceneの対応領域をそのままscissorする。
 - CanvasをDOMより背面に置く場合、Portalとして見せる領域はCanvasを遮らないレイヤー構成にする。
@@ -54,6 +55,7 @@ Renderer Adapter ---> position: fixed Canvas ---> Scene
 - Cameraは回転なしで負のZ方向を見る
 - Cameraのupは正のY方向
 - Camera Xは初期値に固定
+- Camera Xの初期値は `0m`
 - Reference Planeは初期状態で `z = 0`
 - `1 world unit = 1m`
 
@@ -102,6 +104,8 @@ PortalConfiguration
 
 `sceneVariantId` はコード生成Sceneへ渡す調整一式を識別する。以前のVariantによる位置、スケール、表示状態などを残さないよう、`otherwise` を含むすべてのVariantが完全なScene状態を再現できるものとする。
 
+Scene VariantはMedia Queryによって選択し、Portalごとに所有するSceneインスタンスへ適用する。他のPortalのScene状態には影響しない。
+
 `renderCameraFovY`、Camera Y移動高、Camera距離、スクロール進行値は設定として保持せず、実行時に導出する。
 
 ## 責務
@@ -126,6 +130,8 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 
 - `position: fixed` Canvasの生成とresize
 - Three.jsのWebGLRendererとPerspectiveCamera
+- Cameraを `(0, cameraY, referenceCameraDistance)` に置き、回転なしで負のZ方向へ向ける
+- `near` と `far` にRuntime共通の代表値を使い、Scene規模に応じて調整
 - DPR上限
 - scissorとviewportの設定
 - 導出したCamera値の描画エンジンへの適用
@@ -134,6 +140,8 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 - Media Queryの変更時に有効なVariantを再選択し、完全な状態として適用
 - Runtime破棄時にMedia Queryの変更listenerを解除
 - 常時requestAnimationFrameによる描画ループ
+
+Camera Yが移動してもCameraの向きは負のZ方向に固定する。原点への `lookAt()` はCameraを傾けるため使用しない。
 
 ### Page / UI
 
