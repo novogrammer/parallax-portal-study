@@ -27,38 +27,55 @@ DOM上を移動する窓の内側に3D空間を表示し、スクロールにと
 
 ## 3. 中心となる考え方
 
-現行のCamera移動は、単なるスクロールアニメーションではない。固定Canvas上で移動するDOM窓と、3D空間の基準面を一致させるための幾何学的な位置合わせである。
+viewportに固定したCanvas全体へSceneを投影し、DOM窓とviewportの交差矩形でSceneをscissorする。DOM窓の全体矩形はCamera Yと投影値の計算に使い、交差矩形は描画の切り抜きだけに使う。
 
-この処理を本書では **Portal Registration** と呼ぶ。
-
-Portal Registrationと演出的なCamera移動を分離する。
+設計上の基準FOV、スクロールに連動するCamera Y、描画Cameraへ設定するFOVを分離する。
 
 ```text
-finalCamera = registrationCamera + artisticOffset(progress)
+Reference Projection
+  referenceFovY + referenceProjectionHeightMeters
+        |
+        v
+  referenceCameraDistance
+
+Camera Y Motion
+  DOM rect + cameraTopY + cameraBottomY
+        |
+        v
+  cameraY(progress)
+
+Render Projection
+  Reference Projection + DOM height + Camera Y travel + Canvas height
+        |
+        v
+  renderCameraFovY
 ```
 
-- `registrationCamera`: DOM窓と3D基準面を一致させるための必須計算
-- `artisticOffset`: easing、揺れ、追加移動などの任意演出
+`referenceProjectionHeightMeters` とCamera Yの移動高は独立した設定値とする。両者が同じ値になることは許容するが、一致を共通アルゴリズムの前提にはしない。
 
-これにより、演出を無効にしても窓と3D空間の位置関係は壊れない。
+```text
+cameraTravelHeightMeters = abs(cameraTopY - cameraBottomY)
+```
+
+`cameraTravelHeightMeters == referenceProjectionHeightMeters` の場合は、結果的に参照実装と同じ高さ関係になる。
 
 ## 4. 用語
 
 ### Portal
 
-DOM窓、対応するScene、Camera、Scene固有の設定をまとめた論理単位。ページ上に複数配置でき、各Portalは独立したVirtual Projection Profileを持つ。
+DOM窓、対応するScene、Camera、選択したProjection Profileをまとめた論理単位。ページ上に複数配置できる。
 
 ### Aperture
 
-3D世界を覗く開口部。DOM窓の矩形と、3D空間上の基準面の両方を含む概念。
+3D世界を覗く開口部。DOM窓はscissor範囲を与えるが、その高さとReference Projectionの基準投影高が常に一致するとは限らない。
 
 ### Reference Plane
 
-DOM窓と一致させる3D空間上の平面。初期方針では `z = 0` とする。
+Reference Projectionの基準投影高を評価する3D空間上の平面。初期方針では `z = 0` とする。
 
 ### Registration Anchor
 
-Reference Plane上でDOM窓の基準位置に合わせる点。初期方針では窓の中央を使う。
+Reference Plane上の構図基準点。現時点のCamera Yは `cameraTopY` と `cameraBottomY` から求めるため、AnchorをCamera Yの直接入力にはしない。水平方向など将来のRegistrationでの扱いは未決事項とする。
 
 ### Scene Contract
 
@@ -66,11 +83,23 @@ Reference Plane上でDOM窓の基準位置に合わせる点。初期方針で�
 
 ### Motion Policy
 
-Registration後のCameraへ追加する演出的な移動規則。
+スクロール進行値からCamera Yを求める規則と、必要に応じて追加するeasing、揺れ、回転などの演出規則。
 
-### Virtual Projection Profile
+### Projection Profile
 
-Sceneごとの理想的な見え方を定義する投影契約。理想的なvertical FOV、Reference Plane上で画面に収める範囲、およびその範囲に対応するDOM寸法を含む。共通の固定換算表ではなく、Sceneごとの投影条件からmとCSS pxまたはvwの対応を導出するために使う。
+Sceneの見せ方を定義する投影契約。Sceneは推奨Profileを持てるが、SceneとProfileを一対一には固定しない。同じSceneを異なるPortalや構図で再利用できる。
+
+### Reference FOV Y
+
+`referenceFovY`。Projection Profileで指定する構図設計上の基準vertical FOV。描画Cameraへ直接設定する値ではない。
+
+### Render Camera FOV Y
+
+`renderCameraFovY`。fixed CanvasとDOM窓の寸法比、およびCamera Y移動高と基準投影高の比から導出し、描画Cameraへ実際に設定するvertical FOV。
+
+### Camera Y Range
+
+`cameraTopY` と `cameraBottomY` の組。DOM窓の上端または下端がviewport中央へ達した時点のCamera Yをmで定義する。座標の大小ではなく、対応するスクロールイベントによってtop / bottomを命名する。
 
 ## 5. 座標系
 
@@ -91,140 +120,177 @@ Sceneごとの理想的な見え方を定義する投影契約。理想的なver
 - Sceneの表示物は原則として `z < 0`
 - 長さの単位はmとし、`1 world unit = 1 m` とする
 
-初期基準では、vertical FOVの上側がReference Planeの正のY方向、下側が負のY方向に対応する。DOMのY軸と3DのY軸は向きが反対なので、DOM上端はReference Planeの正のY側、DOM下端は負のY側へ対応する。この対応はスクロール中もPortal Registrationの不変条件として維持する。
+初期基準では、vertical FOVの上側がReference Planeの正のY方向、下側が負のY方向に対応する。このFOVの上下方向はスクロール中も反転させない。DOMのY軸は下向きが正であるため、Camera Yの移動方向は `cameraTopY` と `cameraBottomY` の符号を保持して計算する。
 
-## 6. Portal Registrationの基本式
+## 6. 垂直方向の投影とCamera Yの基本式
 
 ### 6.1 入力
 
-以下の入力は全Sceneで共有する単一設定ではなく、Portalごとに評価する。`Ah` と `phi` は対象PortalのVirtual Projection Profileから受け取る。
+以下の入力はPortalごとに評価する。Projection ProfileはSceneの推奨値を利用しても、Portalが別のProfileを選択してもよい。
 
 ```text
-viewport size: V = (Vw, Vh)
-viewport center: Vc = (Vw / 2, Vh / 2)
-
+canvas / viewport size: V = (Vw, Vh)
 portal rect: R = (x, y, w, h)
-portal center: Rc = (x + w / 2, y + h / 2)
 
-reference aperture height: Ah
-registration anchor: A = (Ax, Ay, 0)
-ideal reference vertical FOV: phi
+referenceFovY: phiR
+referenceProjectionHeightMeters: Hp
+cameraTopY: Ty
+cameraBottomY: By
 ```
+
+会話中の仮記号との対応は、`p.height = Hp`、`t.y = Ty`、`b.y = By` とする。
 
 - `Vw`, `Vh`, `x`, `y`, `w`, `h` の単位はCSS px
-- `Ah`, `Ax`, `Ay` の単位はm
-- `phi` は0度より大きく180度より小さい
-- `w` と `h` は0より大きい
+- `Hp`, `Ty`, `By` の単位はm
+- `phiR` は0度より大きく180度より小さい
+- `Vh`, `w`, `h`, `Hp` は0より大きい
+- `abs(Ty - By)` は現時点の変換式では0より大きい
 
-### 6.2 Sceneごとのフレーミング定義
+数式中の三角関数にはradを使う。設定値をdegreeで保持する場合は、計算境界でradへ変換する。
 
-FOVを1m当たりの換算値として定義しない。各Sceneについて、まず演出上理想となるvertical FOV `phi` を決め、次にそのFOVでReference Plane上に収める高さ `Ah` をmで定義する。
+### 6.2 Reference Projection
+
+`referenceFovY` は1m当たりの換算値ではない。構図設計上の基準vertical FOV `phiR` と、そのFOVでReference Plane上に収める基準投影高 `Hp` [m] を個別に指定する。
 
 ```text
-Sceneごとの理想FOV: phi
-Sceneごとの基準空間高: Ah [m]
+referenceFovY: phiR
+referenceProjectionHeightMeters: Hp
 ```
 
-`phi` と `Ah` はVirtual Projection Profileの入力であり、Camera距離とDOM単位との対応は導出値とする。同じ `Ah` でも `phi` が異なればCamera距離と奥行きの見え方が変わるため、`phi` と `Ah` はそれぞれ独立した演出上の意味を持つ。
-
-Scene内の単位がmであることは全Scene共通の不変条件とするが、画面内に収める高さ `Ah` はSceneごとに異なってよい。「Sceneごとにメートルを定義する」とは、mそのものの尺度を変えることではなく、そのSceneの基準構図へ収める範囲をmで指定することを指す。
-
-初期アルゴリズムは高さ基準とする。将来、幅基準、contain、coverを採用する場合は、どの軸の何mを画面に収めるかをProjection Policyとして明示する。
-
-### 6.3 DOM記述単位との対応
-
-DOM記述単位は端末区分へ固定せず、Virtual Projection ProfileごとにCSS pxまたはvwを選択する。PC向けレイアウトでvwを使うことも、SP向けレイアウトでCSS pxを使うことも許容する。一方、Portal Geometryへ渡すviewportとDOM窓の実測矩形は、記述単位にかかわらずCSS pxへ正規化する。
-
-対象Sceneの基準DOM窓の高さを `D`、その記述単位を `U` とする。
+基準Camera距離は次のとおり。
 
 ```text
-layoutUnit = U  // "vw" | "css-px"
-metersPerLayoutUnit = Ah / D
+referenceCameraDistance = Hp / (2 * tan(phiR / 2))
 ```
 
-`U = "vw"` なら結果の単位はm/vw、`U = "css-px"` ならm/CSS pxになる。この値はSceneへ直接与える独立した換算定数ではない。各Sceneの `Ah` と、そのSceneのレイアウトで基準となるDOM窓寸法 `D` から導出する。したがって、同じページにあるScene AとScene Bが異なる `Ah`、`phi`、`D`、`U` を持つことを許容する。
+同じ `Hp` でも `phiR` が異なればCamera距離と奥行きの見え方が変わる。`referenceFovY` は設計入力であり、fixed Canvasの描画Cameraへ直接設定する値ではない。
 
-実行時のRegistration計算には、レイアウト後の `getBoundingClientRect()` 相当値を使う。`U = "vw"` の場合もブラウザが解決した結果をCSS pxとして受け取り、描画処理へvwを直接渡さない。
+### 6.3 Camera Y Rangeとスクロール進行値
 
-ここでいうpxはdevice pixelではなくCSS pxである。DPRはCanvasの描画解像度だけに影響し、DOMとReference Planeの寸法対応には含めない。
+`cameraTopY` と `cameraBottomY` は、Camera Yの上下端をmで個別に指定する。
 
-### 6.4 複数Sceneの設定単位
+- DOM窓の上端がviewport中央に来たとき `cameraTopY`
+- DOM窓の下端がviewport中央に来たとき `cameraBottomY`
 
-ページはPortalの集合として構成し、投影設定をPortalごとに保持する。概念上の設定構造は次のとおり。
+スクロール進行値は次のとおり。
 
 ```text
+centerProgress = (Vh / 2 - y) / h
+```
+
+Camera Yは次のように求める。
+
+```text
+cameraY = lerp(cameraTopY, cameraBottomY, centerProgress)
+```
+
+Camera Yの移動高は導出値とし、重複して設定しない。
+
+```text
+cameraTravelHeightMeters = abs(cameraTopY - cameraBottomY)
+```
+
+`cameraTopY` と `cameraBottomY` の符号と順序はCameraの移動方向に使い、FOV変換では高さだけが必要なため絶対値を使う。clampとeasingの有無はMotion Policyで決める。
+
+### 6.4 基準投影高とCamera移動高の独立性
+
+`referenceProjectionHeightMeters` と `cameraTravelHeightMeters` は独立した値である。一致させるモードと一致させないモードには分けず、常に個別の数値として扱う。
+
+```text
+referenceProjectionHeightMeters = Hp
+cameraTravelHeightMeters = abs(Ty - By)
+```
+
+次の条件を満たす場合だけ、両者は結果的に一致する。
+
+```text
+abs(Ty - By) == Hp
+```
+
+これは参照実装相当の特殊ケースであり、一般化後の不変条件にはしない。
+
+### 6.5 DOM記述単位
+
+DOM記述単位は端末区分へ固定せず、Projection ProfileごとにCSS pxまたはvwを選択する。PC向けレイアウトでvwを使うことも、SP向けレイアウトでCSS pxを使うことも許容する。
+
+```text
+referenceDomHeight
+├── value
+└── unit: "css-px" | "vw"
+```
+
+実行時には、記述単位にかかわらず `getBoundingClientRect()` 相当の結果をCSS pxとしてPortal Geometryへ渡す。vwを描画処理へ直接渡さない。ここでいうpxはdevice pixelではなくCSS pxであり、DPRはCanvasの描画解像度だけに影響する。
+
+### 6.6 Reference FOV YからRender Camera FOV Yへの変換
+
+DOM窓の高さ `h` に対するCamera Yの移動高から、実行時の垂直スケールを求める。
+
+```text
+cameraMetersPerCssPixel = cameraTravelHeightMeters / h
+```
+
+fixed Canvas全体に対応する仮想空間高は次のとおり。
+
+```text
+renderProjectionHeightMeters =
+  Vh * cameraTravelHeightMeters / h
+```
+
+`referenceCameraDistance` を維持したまま、この高さをCanvas全体へ収める `renderCameraFovY` は次のとおり。
+
+```text
+renderCameraFovY =
+  2 * atan(
+    tan(referenceFovY / 2)
+    * Vh / h
+    * cameraTravelHeightMeters / referenceProjectionHeightMeters
+  )
+```
+
+`renderCameraFovY` は導出値であり、fixed Canvasの描画Cameraへ実際に設定する。DOM窓の現在Y位置はCamera Yの計算に使い、このFOV変換には含めない。
+
+`cameraTravelHeightMeters == referenceProjectionHeightMeters` の場合は次の式へ簡略化され、参照実装相当になる。
+
+```text
+renderCameraFovY =
+  2 * atan(tan(referenceFovY / 2) * Vh / h)
+```
+
+### 6.7 複数SceneとProjection Profile
+
+SceneとProjection Profileは一対一に固定しない。Sceneは推奨Profileを提示でき、各Portalが利用するProfileを選択する。
+
+```text
+Projection Profiles[]
+└── profile
+    ├── profileId
+    ├── referenceFovY
+    ├── referenceProjectionHeightMeters
+    ├── cameraTopY
+    ├── cameraBottomY
+    └── referenceDomHeight
+        ├── value
+        └── unit: "css-px" | "vw"
+
 Portal Configuration[]
 └── portal
     ├── sceneId
-    ├── registrationAnchor [m]
-    └── projectionProfiles[]
-        └── profile
-            ├── profileId
-            ├── idealVerticalFov
-            ├── referenceApertureHeightMeters
-            └── referenceDomHeight
-                ├── value
-                └── unit: "css-px" | "vw"
+    └── projectionProfileId
 ```
 
-1つのSceneがレイアウト条件ごとに複数のProfileを持つことを許容する。どのProfileを選ぶかはPage / UIまたはConfigurationの選択責務とし、単位から端末種別を推測しない。各Sceneの差は設定データとして表し、Portal Geometry内でScene ID、Scene数、端末種別に応じた条件分岐を行わない。
+同じSceneを異なるProfileで再利用できる。各SceneまたはProfileの差は設定データとして表し、Portal Geometry内でScene ID、Scene数、端末種別に応じた条件分岐を行わない。
 
-### 6.5 窓面上の実行時スケール
+### 6.8 Scissorに使う矩形
 
-DOM窓の1 CSS pxに対応するReference Plane上のmを求める。
+FOVとCamera Yの計算には、clip前のDOM窓全体の `y` と `h` を使う。DOM窓とviewportの交差矩形はscissorだけに使う。
 
 ```text
-metersPerCssPixel = Ah / h
+fullPortalRect
+├── y, h          -> centerProgress, cameraY, renderCameraFovY
+└── intersection  -> scissor only
 ```
 
-初期アルゴリズムではXとYに同じスケールを使う。この場合、DOM窓を通して見えるReference Planeの幅は次の値になる。
-
-```text
-visibleReferenceWidth = Ah * w / h
-```
-
-固定の基準幅を優先する場合は、contain、cover、非対称投影など別の投影ポリシーが必要になるため、未決事項として扱う。
-
-### 6.6 基準Camera距離
-
-Reference Planeの高さ `Ah` が基準FOV `phi` に収まるCamera距離は次のとおり。
-
-```text
-cameraZ = Ah / (2 * tan(phi / 2))
-```
-
-### 6.7 CameraのX / Y位置
-
-Registration AnchorをDOM窓中央へ投影するCamera位置は次のとおり。
-
-```text
-scale = Ah / h
-
-cameraX = Ax + (Rc.x - Vc.x) * scale
-cameraY = Ay + (Rc.y - Vc.y) * scale
-```
-
-DOM窓がviewport中央にある場合、CameraのX / YはAnchorと一致する。DOM窓が下へ移動すると、Cameraは3D空間上で上向きに移動し、Reference Plane上のAnchorが窓中央へ投影され続ける。
-
-CameraがRegistration Anchorを中心にReference Planeの高さ `Ah` を捉える場合、上下端は次のとおり。
-
-```text
-referenceTopY    = Ay + Ah / 2
-referenceBottomY = Ay - Ah / 2
-```
-
-この上下関係はRegistration Cameraに対して定義する。Motion PolicyによるCamera回転はRegistration後の演出であり、回転によってDOM窓との厳密な対応から外れる場合は、意図的な演出上の差として扱う。
-
-### 6.8 viewport全体に対するFOV
-
-固定Canvas全体をviewportとして投影し、その一部をDOM窓で切り抜く場合のvertical FOVは次のとおり。
-
-```text
-viewportFovY =
-  2 * atan(tan(phi / 2) * Vh / h)
-```
-
-参照実装のFOV変換はこの式に相当する。
+部分表示時に交差矩形の高さをFOV計算へ使うと、viewport境界を通過するたびにFOVが変化するため禁止する。
 
 ## 7. 1フレームの処理
 
@@ -234,20 +300,17 @@ viewportFovY =
 2. DOM窓の矩形を取得する。
 3. DOM窓とviewportの交差矩形を求める。
 4. 交差幅または交差高が0以下なら、そのPortalを描画対象から外す。
-5. Portal RegistrationからCamera位置と投影値を求める。
-6. Motion Policyがあれば追加のCamera offsetを適用する。
-7. 交差矩形をclip領域としてSceneを描画する。
-8. 次のPortalを処理する。
+5. full Portal rectからスクロール進行値とCamera Yを求める。
+6. Projection Profileから基準Camera距離と `renderCameraFovY` を求める。
+7. Motion Policyによる追加演出があれば適用する。
+8. 交差矩形をscissor領域としてSceneを描画する。
+9. 次のPortalを処理する。
 
 複数のPortalが同時にviewportへ入る場合は、それぞれ独立して計算、描画する。
 
 ## 8. スクロール進行値
 
-Registrationそのものにはスクロール進行値を必須としない。DOM窓の現在矩形からCameraを直接計算できるためである。
-
-演出で進行値が必要な場合は、用途を明示した上で別途定義する。
-
-参照実装と同等の進行値は次のとおり。
+Camera Yを `cameraTopY` から `cameraBottomY` へ補間するため、DOM窓の全体矩形から進行値を求める。
 
 ```text
 centerProgress = (Vh / 2 - y) / h
@@ -257,7 +320,7 @@ centerProgress = (Vh / 2 - y) / h
 - DOM窓の下端がviewport中央に来たとき `1`
 - 範囲外では0未満または1超になる
 
-clampの有無は幾何アルゴリズムではなくMotion Policyとして決める。
+clamp、easing、範囲外の外挿を許可するかはMotion Policyとして決める。scissor用の交差矩形から進行値を求めない。
 
 ## 9. 責務の分離
 
@@ -267,17 +330,18 @@ clampの有無は幾何アルゴリズムではなくMotion Policyとして決�
 
 - 矩形の交差判定
 - 座標変換
-- Camera Registration
-- FOV計算
+- Camera Y補間
+- Reference FOV YからRender Camera FOV Yへの変換
 - 進行値計算
 - 入力値の検証
 
 ### 9.2 Motion Policy
 
-Registrationへ加える演出を担当する。
+Camera Yの進行規則と、基本計算へ加える演出を担当する。
 
 - clampの有無
 - easing
+- `cameraTopY` と `cameraBottomY` の補間
 - X / Y / Z方向の追加移動
 - Camera回転
 - pointerやdevice orientationへの反応
@@ -288,8 +352,9 @@ Registrationへ加える演出を担当する。
 Portalへ渡す3Dコンテンツの条件を定義する。
 
 - 座標系とm単位
-- SceneごとのVirtual Projection Profile
-- 理想的なvertical FOVと基準空間高
+- 推奨Projection Profile
+- `referenceFovY` と `referenceProjectionHeightMeters`
+- `cameraTopY` と `cameraBottomY` の許容範囲
 - Reference PlaneとRegistration Anchor
 - Scene bounds
 - near / farの有効範囲
@@ -306,6 +371,7 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 - Canvasの生成とサイズ変更
 - DPRの上限
 - scissor / viewport設定
+- `renderCameraFovY` の描画Cameraへの適用
 - requestAnimationFrameの開始と停止
 - 表示Portalの選別
 - Sceneの読み込みと破棄
@@ -326,23 +392,25 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 ## 10. 一般化後も維持したい不変条件
 
 - DOMコンテンツと3D装飾の責務を分ける。
-- DOM窓と3D Reference Planeの対応を数式で説明できる。
-- DOM上端をReference Planeの正のY側、DOM下端を負のY側へ対応させる。
+- `referenceFovY` と `renderCameraFovY` を別の値として扱う。
+- `referenceProjectionHeightMeters` とCamera Y移動高を独立して設定する。
 - スクロール中もvertical FOVの上側と下側のY方向を反転させない。
 - Scene内の長さをmで統一する。
-- mとvwまたはCSS pxの対応を、Sceneの投影条件とDOM窓寸法から導出する。
+- Camera YのmとvwまたはCSS pxの対応を、Camera Y移動高とDOM窓高から導出する。
 - viewport外のPortalは描画しない。
 - 複数Portalの同時表示を扱える。
-- 各Portalが異なる基準空間高、FOV、基準DOM寸法を持てる。
+- 各Portalが異なるProjection Profileを選択できる。
+- DOM窓とviewportの交差矩形はscissorだけに使う。
 - Scene内の実際のZ距離から透視投影上の視差を作る。
 - Scene固有値を共通アルゴリズムへ埋め込まない。
 - DOM窓が部分表示になってもCameraの構図を不連続に変えない。
 
 ## 11. 設定またはポリシーへ移す値
 
-- Sceneごとの理想的な基準FOV
-- Sceneごとの基準窓面の高さと幅（m）
-- Registration Anchor
+- Projection Profileごとの `referenceFovY`
+- Projection Profileごとの `referenceProjectionHeightMeters`
+- Projection Profileごとの `cameraTopY` と `cameraBottomY`
+- 基準DOM高と記述単位（CSS pxまたはvw）
 - Cameraのnear / far
 - clampの有無
 - Motion easing
@@ -353,53 +421,51 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 - DPR上限
 - 描画ループの停止条件
 - レイアウトProfile間で同一Sceneを使うかどうか
-- 各Scene Profileの基準DOM高と記述単位（CSS pxまたはvw）
 
 ## 12. 実装前の検証ケース
 
 | ケース | 確認内容 |
 | --- | --- |
-| 横幅100%、中央配置 | 参照実装相当の結果になる |
-| 幅50%、左寄せ | Camera Xを含めてAnchorが窓中央に合う |
-| 幅50%、右寄せ | 左寄せと左右対称の結果になる |
-| viewportより大きい窓 | 部分表示でも構図が跳ばない |
-| 上下から部分的に見える窓 | clip領域だけが変化し、投影は連続する |
-| 窓の上下方向の移動 | DOM上端がReference Planeの正のY側、下端が負のY側へ対応し続ける |
+| 移動高と基準投影高が同じ | 参照実装相当の簡略式になる |
+| 移動高と基準投影高が異なる | 高さの比を含む `renderCameraFovY` が得られる |
+| DOM上端がviewport中央 | `centerProgress = 0` かつ `cameraY = cameraTopY` になる |
+| DOM下端がviewport中央 | `centerProgress = 1` かつ `cameraY = cameraBottomY` になる |
+| viewportより大きい窓 | full Portal rectを使い、部分表示でも構図が跳ばない |
+| 上下から部分的に見える窓 | scissor領域だけが変化し、FOVとCamera Yは連続する |
 | 2つの窓が同時表示 | 各Sceneが対応する窓だけに描画される |
-| 異なるサイズの複数窓 | 各窓が独立したFOVとRegistrationを持つ |
-| 異なる投影設定の複数Scene | Sceneごとのm範囲、FOV、px／vw設定が相互に影響しない |
-| 横長、正方形、縦長 | 縦横比が変わってもAnchorが一致する |
+| 異なる投影設定の複数Scene | ProfileごとのFOV、高さ、Camera Y範囲が相互に影響しない |
 | resize中 | 位置とFOVが不連続に跳ばない |
-| ブラウザズーム | CSS px基準の位置合わせが維持される |
-| vw指定のProfile | 端末区分にかかわらず、vwで指定した窓とReference Plane上のmの対応が維持される |
-| CSS px指定のProfile | 端末区分にかかわらず、CSS pxで指定した窓とReference Plane上のmの対応が維持される |
+| ブラウザズーム | CSS pxへ正規化した寸法比で再計算される |
+| vw指定のProfile | 端末区分にかかわらず、vw指定をCSS pxへ解決して計算できる |
+| CSS px指定のProfile | 端末区分にかかわらず、CSS px指定で計算できる |
 | PC幅でvw指定 | PC相当のviewportでも単位をvwとして解決できる |
 | progressが範囲外 | ポリシーどおりclampまたは外挿される |
-| reduced motion | 位置合わせを維持したまま演出だけを止められる |
+| reduced motion | Motion Policyで定めた縮退後もPortal表示が成立する |
 
 ## 13. 合格条件の初期案
 
-- Reference Plane上のAnchorとDOM窓中央の誤差が1 CSS px以内である。
 - vertical FOVの上端がReference Planeの正のY側、下端が負のY側へ投影される。
-- Sceneごとに定義した理想FOVと基準空間高からCamera距離を一意に導出できる。
-- CSS px / vwとも、DOM記述単位を独立した固定換算率としてSceneへ埋め込まない。
+- `referenceFovY` と `referenceProjectionHeightMeters` から基準Camera距離を一意に導出できる。
+- `cameraTopY` と `cameraBottomY` からCamera Y移動高を一意に導出できる。
+- `renderCameraFovY` をReference FOV、Canvas / DOM高比、Camera移動高 / 基準投影高比から導出できる。
+- `cameraTravelHeightMeters == referenceProjectionHeightMeters` を必須条件にしない。
+- CSS px / vwとも、実行時にはCSS pxへ正規化して同じ式で計算できる。
 - 単位からPC / SPなどの端末種別を推測しない。
 - 同じ深度にある点はCamera移動に対して同じ割合で移動して見える。
 - 深い位置にある点ほど、Reference Planeに近い点より見かけの移動量が小さい。
 - DOM窓がviewport境界を横切っても投影結果が不連続に変化しない。
 - Portalの描画順が各PortalのCamera計算へ影響しない。
-- あるSceneのVirtual Projection Profileを変更しても、他SceneのCamera計算結果が変化しない。
-- Scene固有のFOV、far、fogなどを共通アルゴリズムの条件分岐で判定しない。
-- Registrationだけを有効にした最小状態で、スクロールに追従するポータルとして成立する。
+- あるProjection Profileを変更しても、他PortalのCamera計算結果が変化しない。
+- SceneまたはProfile固有のFOV、far、fogなどを共通アルゴリズムの条件分岐で判定しない。
+- 追加演出を無効にした状態でも、Camera YがDOMスクロールへ追従する。
 
 ## 14. 未決事項
 
 - DOM窓の比率と固定の3D基準幅が一致しない場合、height基準、contain、coverのどれを採用するか。
-- Camera移動方式と非対称投影方式のどちらを一般APIの中心にするか。
+- 水平方向のCamera Registrationと投影スケールをどの値から導出するか。
+- `cameraTopY == cameraBottomY` の静止Cameraを現在のFOV変換とは別にどう扱うか。
 - Portalが横方向にもスクロールするケースを初期対象へ含めるか。
 - DOM窓にborder radiusや任意形状maskがある場合のclip責務。
-- 1 Canvas + scissorを必須とするか、Runtime Policyの一方式とするか。
-- レイアウト条件による構図差をCamera設定で扱うか、Scene ContractのProfileで扱うか。
 - 常時RAF、dirty rendering、IntersectionObserver併用のどれを初期実装とするか。
 
 未決事項は実装によって暗黙に確定させず、設計段階で選択理由を記録する。
@@ -409,19 +475,20 @@ Portalへ渡す3Dコンテンツの条件を定義する。
 実装開始時は、少なくとも次の依存方向を守る。
 
 ```text
-Page / DOM Adapter
-        |
-        v
-Portal Geometry  <-  Portal Configuration
-        |
-        v
-Renderer Adapter  ->  Three.js Scene
+Page / DOM Adapter --------------------------+
+                                            |
+                                            v
+Projection Profile -> Portal Configuration -> Portal Geometry
+                                                |
+                                                v
+                                       Renderer Adapter -> Three.js Scene
 ```
 
 - Portal GeometryはDOM型やThree.js型を受け取らない。
 - DOM Adapterが `getBoundingClientRect()` の結果を単純な数値構造へ変換する。
 - Renderer Adapterが計算結果をThree.jsのCameraやRendererへ適用する。
-- Scene固有設定はPortal Configurationから渡す。
+- Portal ConfigurationがSceneとProjection Profileの組み合わせを選択する。
+- `renderCameraFovY` はPortal Geometryで導出し、Renderer Adapterが描画Cameraへ適用する。
 - UI文言やコンテンツ情報をRenderer定義へ混在させない。
 
 実装を開始するまでは、`package.json`、Vite設定、TypeScriptソースを作らない。
@@ -429,8 +496,8 @@ Renderer Adapter  ->  Three.js Scene
 ## 16. 次に行う設計作業
 
 1. 本書の用語と基本式をレビューする。
-2. 未決事項のうち、投影ポリシーと基準幅の扱いを決める。
-3. 数値例を用いてRegistration式を検算する。
+2. 未決事項のうち、水平方向の投影ポリシーと基準幅の扱いを決める。
+3. 数値例を用いてCamera YとFOV変換式を検算する。
 4. Scene Contractを独立した文書へ具体化する。
 5. テストケースごとの入力値と期待値を表にする。
 6. 設計が固まった後、ユーザーの明示を受けてVite + TypeScriptの初期構成を作る。
@@ -442,8 +509,12 @@ Renderer Adapter  ->  Three.js Scene
 - 参照先は読み取り専用であり、修正しない。
 - 現在はアルゴリズム設計段階であり、Webアプリケーションは未実装。
 - Scene内の長さはmで統一する。
-- 複数Sceneを配置し、それぞれが独立したVirtual Projection Profileを持てる構造とする。
-- 各Sceneで理想FOVを先に決め、次にReference Plane上の基準空間高をmで定義する。
-- 各Scene Profileが基準DOM寸法の単位としてCSS pxまたはvwを選び、mとの対応をそのProfileから導出する。単位とPC / SPは結び付けない。
+- 複数Sceneと複数Projection Profileを扱い、SceneとProfileを一対一には固定しない。
+- `referenceFovY` と `referenceProjectionHeightMeters` はProjection Profileの設計入力とする。
+- `cameraTopY` と `cameraBottomY` は個別に指定し、その絶対差をCamera Y移動高とする。
+- 基準投影高とCamera Y移動高は独立しており、同値なら結果的に参照実装相当になる。
+- `renderCameraFovY` はReference FOV、Canvas / DOM高比、Camera移動高 / 基準投影高比から導出する。
+- ProfileはDOM寸法の単位としてCSS pxまたはvwを選べる。単位とPC / SPは結び付けない。
+- fixed CanvasへSceneを描画し、DOM窓とviewportの交差矩形でscissorする。
 - 次のセッションでは、まず本書とルートの `AGENTS.md` を読む。
 - 次の優先作業は、基本式の数値検算と未決事項の整理。
