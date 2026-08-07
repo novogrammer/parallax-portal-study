@@ -8,7 +8,7 @@ DOM上をスクロールする窓の内側に3D空間を表示し、Scene内の�
 
 Portalのスクロール方向は縦だけとし、表示領域は矩形とする。横方向スクロール、border radiusや任意形状mask、`prefers-reduced-motion` 対応は対象外とする。
 
-将来のWeb実装はVite + TypeScript + Three.jsを使う。SceneはTypeScriptコードからThree.jsのGeometry、Material、Object3Dなどを生成して構築し、GLBなどの外部3Dアセット読み込みは初期対象に含めない。
+将来のWeb実装はVite + TypeScript + Three.jsを使う。SceneはTypeScriptコードからThree.jsのGeometry、Material、Object3Dなどを生成して構築し、GLBなどの外部3Dアセット読み込みは初期対象に含めない。GSAPは使用せず、viewport条件の監視にはネイティブの `window.matchMedia()` を使う。
 
 ## 全体構造
 
@@ -104,7 +104,7 @@ PortalConfiguration
 
 `portalId` は一意とし、DOM側の `[data-portal-id="..."]` と対応させる。要素が見つからない場合は初期化時の設定例外とする。
 
-`query` は `matchMedia()` へ渡すMedia Query文字列とし、具体的なブレークポイントとVariantの対応はTypeScriptの設定オブジェクトに記述する。Portalごとの条件分岐を選択ロジックへハードコードしない。
+`query` は `window.matchMedia()` へ渡すMedia Query文字列とし、具体的なブレークポイントとVariantの対応はTypeScriptの設定オブジェクトに記述する。Portalごとの条件分岐を選択ロジックへハードコードしない。
 
 共通の選択処理は `rules` を上から評価し、最初に一致したVariantを選ぶ。どの条件にも一致しない場合は必須の `otherwise` を選ぶため、常にちょうど1つのVariantが有効になる。各Variantは差分ではなく完全な状態として扱い、切り替え時にはProjection ProfileとScene Variantの両方を適用する。
 

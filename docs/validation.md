@@ -71,3 +71,14 @@
 - `portalId` によってPortal ConfigurationとDOM要素を一意に対応付けられる。
 - Cameraを `(0, cameraY, referenceCameraDistance)` に置き、Camera Yにかかわらず負のZ方向へ向けられる。
 - 不正なRender Camera FOVによって、Camera状態の一部だけが更新されない。
+
+## 実装時に決める項目
+
+次の具体値は設計上の未決事項ではなく、初期実装と表示確認の中で決める。
+
+- `near` と `far`
+- DPR上限
+- Media Queryと各Projection Profileの具体値
+- SceneのGeometry、Material、LightとScene Variantの具体値
+- scissor座標の端数処理
+- 対応ブラウザ範囲
