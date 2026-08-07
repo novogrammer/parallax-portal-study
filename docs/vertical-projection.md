@@ -15,6 +15,7 @@ Projection Profileで指定する基準FOV、DOMスクロールに連動するCa
 | `Hp` | `referenceProjectionHeightMeters` | Reference Plane上で基準FOVに収める高さ | m |
 | `Ty` | `cameraTopY` | Portal上端がviewport中央に来たときのCamera Y | m |
 | `By` | `cameraBottomY` | Portal下端がviewport中央に来たときのCamera Y | m |
+| `pi` | 円周率 | 約3.14159 | 無次元 |
 
 会話中の仮記号との対応は、`p.height = Hp`、`t.y = Ty`、`b.y = By` とする。
 
