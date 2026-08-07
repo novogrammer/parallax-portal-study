@@ -50,7 +50,7 @@ centerProgress = (Vh / 2 - y) / h
 
 - Portal上端がviewport中央に来たとき `0`
 - Portal下端がviewport中央に来たとき `1`
-- 範囲外では0未満または1超
+- 範囲外では0未満または1超の値をそのまま使う
 
 Camera YはProfileの上下端を補間して求める。
 
@@ -58,13 +58,15 @@ Camera YはProfileの上下端を補間して求める。
 cameraY = lerp(Ty, By, centerProgress)
 ```
 
+`centerProgress` はclampせず、全範囲で線形補間または線形外挿する。これはPortalがviewportへ出入りするときのCamera移動を自然に連続させるための仕様である。
+
 Camera Yの移動高は設定として重複保持しない。
 
 ```text
 cameraTravelHeightMeters = abs(Ty - By)
 ```
 
-`Ty` と `By` の順序はCameraの移動方向に使い、FOV変換では絶対差を高さとして使う。clamp、easing、外挿はMotion Policyで決める。
+`Ty` と `By` の順序はCameraの移動方向に使い、FOV変換では絶対差を高さとして使う。`Ty == By` は有効な投影を作れない設定ミスとして例外を投げ、処理を終了する。
 
 ## Render Projection
 

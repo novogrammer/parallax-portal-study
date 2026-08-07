@@ -17,14 +17,17 @@
 | CSS px指定 | 端末区分にかかわらず同じ計算を使える |
 | resize | 実測DOM矩形とCanvas寸法から連続的に再計算される |
 | ブラウザズーム | CSS pxへ正規化した寸法比で再計算される |
-| progressが範囲外 | Motion Policyどおりclampまたは外挿される |
-| reduced motion | Motion Policyで定めた縮退後もPortal表示が成立する |
+| progressが0未満または1超 | clampせず、同じ式でCamera Yが線形外挿される |
+| `cameraTopY == cameraBottomY` | 設定例外を投げて処理を終了する |
+| Portalがないフレーム | requestAnimationFrame自体は継続する |
 
 ## 合格条件
 
 - vertical FOVの上側が3D空間の正のY方向、下側が負のY方向へ投影される。
 - Reference FOVと基準投影高から基準Camera距離を一意に導出できる。
 - Camera Yの上下端からCamera移動高を一意に導出できる。
+- `centerProgress` を範囲外でもclampせず、Camera Yを線形外挿する。
+- Camera Y移動高が0なら設定例外を投げて処理を終了する。
 - Reference FOV、Canvas / DOM高比、Camera移動高 / 基準投影高比からRender Camera FOVを一意に導出できる。
 - Camera移動高と基準投影高の同値を必須条件にしない。
 - CSS pxとvwを端末種別から独立して扱える。
@@ -32,14 +35,10 @@
 - Scene内の実際のZ距離に応じて透視投影上の視差が変化する。
 - SceneまたはProfile固有値による条件分岐をPortal Geometryへ埋め込まない。
 - Portalの描画順が各PortalのCamera計算へ影響しない。
+- 表示対象Portalの有無にかかわらずrequestAnimationFrameを継続する。
 
 ## 未決事項
 
-- 水平方向のCamera Registrationと投影スケールをどの値から導出するか。
-- `cameraTopY == cameraBottomY` の静止Cameraを現在のFOV変換とは別にどう扱うか。
 - DOM窓の比率と3D基準幅が一致しない場合、height基準、contain、coverのどれを採用するか。
-- Portalが横方向にもスクロールするケースを初期対象へ含めるか。
-- border radiusや任意形状maskのclip責務をDOMとRendererのどちらが持つか。
-- 常時RAF、dirty rendering、IntersectionObserver併用のどれを初期実装とするか。
 
 未決事項は実装で暗黙に確定させず、選択理由とともに設計へ反映する。

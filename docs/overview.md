@@ -6,6 +6,8 @@ DOM上をスクロールする窓の内側に3D空間を表示し、Scene内の�
 
 現段階ではMarkdownによる設計だけを対象とし、アプリケーションコードやビルド設定は作成しない。
 
+Portalのスクロール方向は縦だけとし、表示領域は矩形とする。横方向スクロール、border radiusや任意形状mask、`prefers-reduced-motion` 対応は対象外とする。
+
 ## 全体構造
 
 viewport全体を覆う1枚のfixed Canvasへ、PortalごとのSceneを順番に描画する。各Sceneの表示範囲は、対応するDOM窓とviewportの交差矩形でscissorする。
@@ -98,10 +100,9 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 
 ### Motion Policy
 
-- Camera Yの進行規則
-- clamp、easing、範囲外の外挿
 - 追加の移動、回転、pointer入力
-- `prefers-reduced-motion` 時の縮退
+
+基本Camera YはPortal Geometryがclampなしの線形補間で求め、Motion Policyでは変更しない。
 
 ### Scene Contract
 
@@ -120,6 +121,7 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 - 導出したCamera値の描画エンジンへの適用
 - 描画対象Portalの選別
 - Sceneの読み込みと破棄
+- 常時requestAnimationFrameによる描画ループ
 
 ### Page / UI
 
@@ -130,7 +132,7 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 
 ## 1フレームのデータフロー
 
-各Portalについて次の順に処理する。
+常時requestAnimationFrameを実行し、各フレームでPortalごとに次の順で処理する。
 
 1. viewport寸法とfull Portal rectを取得する。
 2. Portalとviewportの交差矩形を求める。
