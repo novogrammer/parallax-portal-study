@@ -1,3 +1,26 @@
+
+$break-width-pc: 768px;
+
+$width-sp: 375px;
+//vw算出用
+$px-to-vw-sp: calc(100vw / $width-sp);
+
+$width-pc: 1200px;
+//vw算出用
+$px-to-vw-pc: calc(100vw / $width-pc);
+
+
+@mixin mq-pc() {
+  @media screen and (min-width: $break-width-pc) {
+    @content;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
 body {
   margin: 0;
 }
@@ -15,9 +38,69 @@ main{
   position: relative;
 }
 
+$hero-height-sp: 670px;
+$hero-height-pc: 670px;
+
 .p-home-hero {
-
+  position:relative;
+  width:100%;
+  height: $hero-height-sp * $px-to-vw-sp;
+  @include mq-pc(){
+    height: $hero-height-pc * $px-to-vw-pc;
+  }
+  &__title{
+    line-height:1em;
+    font-size: 100px * $px-to-vw-sp;
+    @include mq-pc(){
+      font-size: 100px * $px-to-vw-pc;
+    }
+  }
 }
+
+
+$introduction-height-sp: 1000px;
+$introduction-height-pc: 1200px;
+
 .p-home-introduction {
+  position:relative;
+  height: $introduction-height-sp * $px-to-vw-sp;
+  outline:1px dashed #f0f;
+  @include mq-pc(){
+    height: $introduction-height-pc;
+
+  }
+  &__title{
+    line-height:1.5em;
+    font-size: 32px * $px-to-vw-sp;
+    width: 350px * $px-to-vw-sp;
+    margin-left: auto;
+    margin-right: auto;
+    @include mq-pc(){
+      font-size: 32px;
+      width:768px;
+    }
+  }
+
 
 }
+
+$footer-height-sp: 670px;
+$footer-height-pc: 670px;
+
+.p-home-footer {
+  position:relative;
+  width:100%;
+  height: $footer-height-sp * $px-to-vw-sp;
+  @include mq-pc(){
+    height: $footer-height-pc * $px-to-vw-pc;
+  }
+  &__title{
+    line-height:1em;
+    font-size: 100px * $px-to-vw-sp;
+    @include mq-pc(){
+      font-size: 100px * $px-to-vw-pc;
+    }
+  }
+}
+
+
