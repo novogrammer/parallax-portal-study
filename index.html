@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,13 +9,38 @@
     <canvas class="p-home-canvas" aria-hidden="true"></canvas>
     <main>
       <section class="p-home-hero">
-        <h1 class="p-home-hero__title">Hello!</h1>
+        <div class="p-bookend-copy">
+          <p class="p-eyebrow">Parallax Portal / WebGL Study</p>
+          <h1>Depth follows<br>the scroll.</h1>
+          <p>固定CanvasとDOMの窓を使った、垂直パララックスの基準実装。</p>
+        </div>
       </section>
-      <section class="p-home-introduction">
-        <h2 class="p-home-introduction__title">Introduction</h2>
+
+      <section class="p-portal" aria-labelledby="warm-depth-title">
+        <div class="p-portal__window" data-portal-id="warm-depth" aria-hidden="true"></div>
+        <div class="p-portal__frame" aria-hidden="true"></div>
+        <div class="p-portal__copy">
+          <p class="p-eyebrow">Portal 01 / Boxes</p>
+          <h2 id="warm-depth-title">Warm depth</h2>
+          <p>近景・中景・遠景を、実際のZ距離で分離した検証Scene。</p>
+        </div>
       </section>
+
+      <section class="p-portal" aria-labelledby="cool-depth-title">
+        <div class="p-portal__window" data-portal-id="cool-depth" aria-hidden="true"></div>
+        <div class="p-portal__frame" aria-hidden="true"></div>
+        <div class="p-portal__copy p-portal__copy--right">
+          <p class="p-eyebrow">Portal 02 / Orbits</p>
+          <h2 id="cool-depth-title">Cool depth</h2>
+          <p>独立したSceneとCameraを、同じCanvasへscissor描画。</p>
+        </div>
+      </section>
+
       <section class="p-home-footer">
-        <h2 class="p-home-footer__title">Footer</h2>
+        <div class="p-bookend-copy">
+          <p class="p-eyebrow">End of study</p>
+          <h2>Two portals.<br>One canvas.</h2>
+        </div>
       </section>
     </main>
     <script type="module" src="/src/main.ts"></script>

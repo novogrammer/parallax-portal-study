@@ -10,7 +10,7 @@
 
 | 段階 | 状態 |
 | --- | --- |
-| 第1段階: WebGL基準実装 | 未着手 |
+| 第1段階: WebGL基準実装 | 完了 |
 | 第2段階: WebGPU移行検証 | 未着手 |
 
 ## 実装方針
@@ -156,12 +156,6 @@ WebGLRendererを使い、垂直投影、スクロール連動Camera、複数Port
 
 ## 未決事項
 
-次の値と判断は、各段階の初期実装と表示確認の中で決める。
+次の判断は、第2段階の実装と表示確認の中で決める。
 
-- `near` と `far`
-- DPR上限
-- Media QueryとProjection Profileの具体値
-- 検証SceneのGeometry、Material、Light
-- scissor座標の端数処理
-- 単体テストのファイル構成と実行方法
 - WebGL版を移行後も比較用として保持するか、WebGPURendererへ置き換えるか

@@ -1,19 +1,26 @@
 import './style.scss'
+import { ParallaxPortalApp } from './portal/ParallaxPortalApp.ts'
+import { portalConfigurations, projectionProfiles, sceneVariants } from './portal/config.ts'
 
-// import * as THREE from "three/webgpu";
+async function mainAsync(): Promise<void> {
+  const canvas = document.querySelector<HTMLCanvasElement>('.p-home-canvas')
 
+  if (!canvas) {
+    throw new Error('The shared portal canvas was not found.')
+  }
 
+  const app = new ParallaxPortalApp({
+    canvas,
+    configurations: portalConfigurations,
+    profiles: projectionProfiles,
+    sceneVariants,
+  })
 
-
-async function mainAsync(){
-  // const canvasElement = document.querySelector<HTMLCanvasElement>(".p-home-canvas");
-  // if(!canvasElement){
-  //   throw new Error("canvasElement is null");
-  // }
-
-  
-  console.log("hello");
+  await app.initialize()
+  app.start()
 }
 
-mainAsync().catch(console.error);
-
+mainAsync().catch((error: unknown) => {
+  document.documentElement.classList.add('portal-unavailable')
+  console.error(error)
+})
