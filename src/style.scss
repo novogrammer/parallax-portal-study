@@ -7,9 +7,9 @@ $px-to-vw-pc: calc(100vw / $design-width-pc);
 $bookend-height-sp: 670px;
 $bookend-height-pc: 670px;
 $introduction-width-sp: 350px;
-$introduction-height-sp: 1000px;
+$introduction-height-sp: 1600px;
 $introduction-width-pc: 768px;
-$introduction-height-pc: 1200px;
+$introduction-height-pc: 1800px;
 $showcase-height-sp: 670px;
 $showcase-height-pc: 670px;
 
@@ -114,9 +114,7 @@ main {
 }
 
 .p-home-introduction {
-  display: flex;
   height: $introduction-height-sp * $px-to-vw-sp;
-  justify-content: center;
 
   @include mq-pc() {
     height: $introduction-height-pc;
@@ -125,12 +123,59 @@ main {
 
 .p-home-introduction__inner {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: $introduction-width-sp * $px-to-vw-sp;
   height: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding: 120px * $px-to-vw-sp 0;
+  justify-content: space-around;
 
   @include mq-pc() {
     width: $introduction-width-pc;
+    padding: 160px 0;
   }
+}
+
+.p-home-introduction .p-portal-copy {
+  position: static;
+  width: 100%;
+  padding: 0 24px * $px-to-vw-sp;
+  transform: none;
+
+  @include mq-pc() {
+    padding: 0 64px;
+  }
+}
+
+.p-home-introduction__text {
+  width: 100%;
+  padding: 0 24px * $px-to-vw-sp;
+
+  @include mq-pc() {
+    padding: 0 64px;
+  }
+}
+
+.p-home-introduction__text--right {
+  text-align: right;
+}
+
+.p-home-introduction__text h3 {
+  margin-top: 12px;
+  font-size: clamp(2rem, 4.5vw, 4rem);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.34);
+}
+
+.p-home-introduction__text > p:last-child {
+  margin-top: 20px;
+  font-size: clamp(0.9rem, 1.4vw, 1.05rem);
+  line-height: 1.8;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
 }
 
 .p-home-showcase {
