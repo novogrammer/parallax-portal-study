@@ -79,32 +79,53 @@ main {
 
 .p-bookend-copy,
 .p-portal-copy {
-  width: min(100%, 760px);
+  width: 100%;
 }
 
 .p-bookend-copy h1,
-.p-bookend-copy h2,
-.p-portal-copy h2 {
-  margin-top: 12px;
-  font-size: clamp(3rem, 9vw, 8.5rem);
+.p-bookend-copy h2 {
+  margin-top: 12px * $px-to-vw-sp;
+  font-size: 48px * $px-to-vw-sp;
   font-weight: 500;
   line-height: 0.9;
   letter-spacing: -0.065em;
+
+  @include mq-pc() {
+    margin-top: 12px * $px-to-vw-pc;
+    font-size: 108px * $px-to-vw-pc;
+  }
 }
 
-.p-bookend-copy > p:last-child,
-.p-portal-copy > p:last-child {
-  max-width: 42rem;
-  margin-top: 24px;
-  font-size: clamp(0.9rem, 1.5vw, 1.15rem);
+.p-bookend-copy {
+  max-width: 350px * $px-to-vw-sp;
+
+  @include mq-pc() {
+    max-width: 760px * $px-to-vw-pc;
+  }
+}
+
+.p-bookend-copy > p:last-child {
+  max-width: 327px * $px-to-vw-sp;
+  margin-top: 24px * $px-to-vw-sp;
+  font-size: 14px * $px-to-vw-sp;
   line-height: 1.6;
+
+  @include mq-pc() {
+    max-width: 672px * $px-to-vw-pc;
+    margin-top: 24px * $px-to-vw-pc;
+    font-size: 18px * $px-to-vw-pc;
+  }
 }
 
 .p-eyebrow {
-  font-size: 0.72rem;
+  font-size: 11px * $px-to-vw-sp;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+
+  @include mq-pc() {
+    font-size: 12px * $px-to-vw-pc;
+  }
 }
 
 .p-home-introduction,
@@ -151,27 +172,45 @@ main {
   padding: 28px * $px-to-vw-sp 24px * $px-to-vw-sp;
   color: #211c18;
   background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 12px 40px rgba(30, 22, 17, 0.12);
-  backdrop-filter: blur(8px);
+  box-shadow: 0 12px * $px-to-vw-sp 40px * $px-to-vw-sp rgba(30, 22, 17, 0.12);
+  backdrop-filter: blur(8px * $px-to-vw-sp);
 
   @include mq-pc() {
     width: 600px;
     padding: 40px 48px;
+    box-shadow: 0 12px 40px rgba(30, 22, 17, 0.12);
+    backdrop-filter: blur(8px);
+  }
+}
+
+.p-home-introduction .p-eyebrow {
+  @include mq-pc() {
+    font-size: 12px;
   }
 }
 
 .p-home-introduction__text h3 {
-  margin-top: 12px;
-  font-size: clamp(2rem, 4.5vw, 4rem);
+  margin-top: 12px * $px-to-vw-sp;
+  font-size: 32px * $px-to-vw-sp;
   font-weight: 500;
   line-height: 1;
   letter-spacing: -0.045em;
+
+  @include mq-pc() {
+    margin-top: 12px;
+    font-size: 54px;
+  }
 }
 
 .p-home-introduction__text > p:last-child {
-  margin-top: 20px;
-  font-size: clamp(0.9rem, 1.4vw, 1.05rem);
+  margin-top: 20px * $px-to-vw-sp;
+  font-size: 14px * $px-to-vw-sp;
   line-height: 1.8;
+
+  @include mq-pc() {
+    margin-top: 20px;
+    font-size: 17px;
+  }
 }
 
 .p-home-showcase {
@@ -193,7 +232,15 @@ main {
   pointer-events: none;
 
   @include mq-pc() {
-    padding: 64px;
+    padding: 64px * $px-to-vw-pc;
+  }
+}
+
+.p-home-showcase .p-portal-copy {
+  max-width: 350px * $px-to-vw-sp;
+
+  @include mq-pc() {
+    max-width: 760px * $px-to-vw-pc;
   }
 }
 
@@ -209,21 +256,53 @@ main {
 }
 
 .p-portal-copy h2 {
-  font-size: clamp(3.4rem, 8vw, 8rem);
-  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.34);
+  margin-top: 12px * $px-to-vw-sp;
+  font-size: 54px * $px-to-vw-sp;
+  font-weight: 500;
+  line-height: 0.9;
+  letter-spacing: -0.065em;
+  text-shadow: 0 2px * $px-to-vw-sp 20px * $px-to-vw-sp rgba(0, 0, 0, 0.34);
+
+  @include mq-pc() {
+    margin-top: 12px * $px-to-vw-pc;
+    font-size: 96px * $px-to-vw-pc;
+    text-shadow: 0 2px * $px-to-vw-pc 20px * $px-to-vw-pc rgba(0, 0, 0, 0.34);
+  }
 }
 
 .p-home-introduction .p-portal-copy h2 {
-  font-size: clamp(3rem, 6vw, 5.5rem);
+  font-size: 48px * $px-to-vw-sp;
   text-shadow: none;
+
+  @include mq-pc() {
+    margin-top: 12px;
+    font-size: 72px;
+  }
 }
 
 .p-home-introduction .p-portal-copy > p:last-child {
   text-shadow: none;
+
+  @include mq-pc() {
+    max-width: none;
+    margin-top: 24px;
+    font-size: 17px;
+  }
 }
 
 .p-portal-copy > p:last-child {
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
+  max-width: 327px * $px-to-vw-sp;
+  margin-top: 24px * $px-to-vw-sp;
+  font-size: 14px * $px-to-vw-sp;
+  line-height: 1.6;
+  text-shadow: 0 1px * $px-to-vw-sp 10px * $px-to-vw-sp rgba(0, 0, 0, 0.55);
+
+  @include mq-pc() {
+    max-width: 672px * $px-to-vw-pc;
+    margin-top: 24px * $px-to-vw-pc;
+    font-size: 18px * $px-to-vw-pc;
+    text-shadow: 0 1px * $px-to-vw-pc 10px * $px-to-vw-pc rgba(0, 0, 0, 0.55);
+  }
 }
 
 .p-portal-copy--right > p:last-child {
