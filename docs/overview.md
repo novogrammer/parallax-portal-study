@@ -2,13 +2,13 @@
 
 ## 目的
 
-DOM上をスクロールする窓の内側に3D空間を表示し、Scene内の実際の奥行きから視差を生じさせる仕組みを、特定のSceneや描画ライブラリに依存しない形で定義する。
+DOM上をスクロールする窓の内側に3D空間を表示し、Scene内の実際の奥行きから視差を生じさせる仕組みを定義する。Portal Geometryは特定のSceneや描画ライブラリに依存させず、描画Runtimeと分離する。
 
-現段階ではMarkdownによる設計だけを対象とし、アプリケーションコードやビルド設定は作成しない。
+現在はVite + TypeScript + Three.jsによる第1段階のWebGL基準実装まで完了している。実装段階の現在地と対象範囲は[実装計画](./implementation-plan.md)を正本とする。
 
 Portalのスクロール方向は縦だけとし、表示領域は矩形とする。横方向スクロール、border radiusや任意形状mask、`prefers-reduced-motion` 対応は対象外とする。
 
-将来のWeb実装はVite + TypeScript + Three.jsを使う。SceneはTypeScriptコードからThree.jsのGeometry、Material、Object3Dなどを生成して構築し、GLBなどの外部3Dアセット読み込みは初期対象に含めない。GSAPは使用せず、viewport条件の監視にはネイティブの `window.matchMedia()` を使う。
+SceneはTypeScriptコードからThree.jsのGeometry、Material、Object3Dなどを生成して構築する。第1段階ではGLBなどの外部3Dアセットを読み込まず、GSAPも使用しない。viewport条件の監視にはネイティブの `window.matchMedia()` を使う。
 
 ## 全体構造
 
@@ -130,11 +130,11 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 
 - 追加の移動、回転、pointer入力
 
-基本Camera YはPortal Geometryがclampなしの線形補間で求め、Motion Policyでは変更しない。
+将来の追加演出を分離するための拡張境界であり、第1段階では実装しない。基本Camera YはPortal Geometryがclampなしの線形補間で求め、将来Motion Policyを追加しても変更しない。
 
 ### Runtime
 
-- `position: fixed` Canvasの生成とresize
+- Page / UIが用意した `position: fixed` Canvasの受け取りと描画バッファのresize
 - Three.jsのWebGLRendererとPerspectiveCamera
 - alphaを有効にし、CanvasのPortal外領域を透明に維持
 - Cameraを `(0, cameraY, referenceCameraDistance)` に置き、回転なしで負のZ方向へ向ける
@@ -144,7 +144,7 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 - Portal描画前にscissor内のcolor bufferとdepth bufferをclear
 - 導出したCamera値の描画エンジンへの適用
 - 描画対象Portalの選別
-- Sceneの読み込みと破棄
+- Sceneの生成結果の受け取りと破棄
 - Media Queryの変更時に有効なVariantを再選択し、完全な状態として適用
 - Runtime破棄時にMedia Queryの変更listenerを解除
 - 常時requestAnimationFrameによる描画ループ
@@ -170,7 +170,7 @@ Camera Yが移動してもCameraの向きは負のZ方向に固定する。原�
 2. Portalとviewportの交差矩形を求める。
 3. 交差領域がなければ描画対象から外す。
 4. Projection Profileとfull Portal rectからCamera Y、Camera距離、Render Camera FOV、可視幅を導出する。
-5. Motion Policyによる追加演出を適用する。
+5. Motion Policyが実装されている段階では追加演出を適用する。第1段階では何も適用しない。
 6. Canvas全体のWebGL viewportを維持したまま、交差矩形をscissorへ設定する。
 7. scissor内のcolor bufferとdepth bufferをclearしてSceneを描画する。
 

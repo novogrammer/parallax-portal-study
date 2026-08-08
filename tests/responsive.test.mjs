@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { selectResponsiveVariant } from '../src/portal/responsive.ts'
+import {
+  listConfiguredVariants,
+  selectResponsiveVariant,
+  validatePortalVariantReferences,
+} from '../src/portal/responsive.ts'
 
 const rules = [
   {
@@ -26,4 +30,36 @@ test('responsive selection falls back to otherwise', () => {
 
 test('responsive selection rejects a mismatched match list', () => {
   assert.throws(() => selectResponsiveVariant(rules, [true], otherwise), RangeError)
+})
+
+test('configuration validation checks inactive rules as well as otherwise', () => {
+  const configuration = {
+    portalId: 'test-portal',
+    sceneId: 'test-scene',
+    responsiveVariants: { rules, otherwise },
+  }
+
+  assert.deepEqual(listConfiguredVariants(configuration), [
+    rules[0].variant,
+    rules[1].variant,
+    otherwise,
+  ])
+
+  assert.throws(
+    () => validatePortalVariantReferences(
+      configuration,
+      new Set(['medium', 'small']),
+      new Set(['large', 'medium', 'small']),
+    ),
+    /unknown profile "large"/,
+  )
+
+  assert.throws(
+    () => validatePortalVariantReferences(
+      configuration,
+      new Set(['large', 'medium', 'small']),
+      new Set(['medium', 'small']),
+    ),
+    /unknown scene variant "large"/,
+  )
 })

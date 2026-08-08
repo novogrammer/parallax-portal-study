@@ -65,6 +65,7 @@ WebGLRendererを使い、垂直投影、スクロール連動Camera、複数Port
 - 設定、DOM、Scene生成、Runtimeを組み立てる。
 - 非同期初期化、開始、破棄の入口を提供する。
 - 初期化失敗時に不完全なRuntimeを開始しない。
+- Media Queryの現在の一致状態にかかわらず、全Variantの参照と完全状態を初期化時に検証する。
 
 #### `PortalRenderer`
 
@@ -90,7 +91,7 @@ WebGLRendererを使い、垂直投影、スクロール連動Camera、複数Port
 
 ### 純粋関数の責務
 
-関数名は実装時に型と呼び出し関係を確認して確定する。少なくとも次の計算を、DOMとThree.jsから独立した関数として分離する。
+次の計算を、DOMとThree.jsから独立した純粋関数として実装する。
 
 - Portalとviewportの交差矩形
 - スクロール進行値

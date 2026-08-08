@@ -1,4 +1,35 @@
-import type { PortalVariant, ResponsiveRule } from './types.ts'
+import type { PortalConfiguration, PortalVariant, ResponsiveRule } from './types.ts'
+
+interface IdLookup {
+  has: (id: string) => boolean
+}
+
+export function listConfiguredVariants(configuration: PortalConfiguration): readonly PortalVariant[] {
+  return [
+    ...configuration.responsiveVariants.rules.map(({ variant }) => variant),
+    configuration.responsiveVariants.otherwise,
+  ]
+}
+
+export function validatePortalVariantReferences(
+  configuration: PortalConfiguration,
+  profileIds: IdLookup,
+  sceneVariantIds: IdLookup,
+): void {
+  for (const variant of listConfiguredVariants(configuration)) {
+    if (!profileIds.has(variant.projectionProfileId)) {
+      throw new Error(
+        `Portal "${configuration.portalId}" references unknown profile "${variant.projectionProfileId}".`,
+      )
+    }
+
+    if (!sceneVariantIds.has(variant.sceneVariantId)) {
+      throw new Error(
+        `Portal "${configuration.portalId}" references unknown scene variant "${variant.sceneVariantId}".`,
+      )
+    }
+  }
+}
 
 export function selectResponsiveVariant(
   rules: readonly ResponsiveRule[],

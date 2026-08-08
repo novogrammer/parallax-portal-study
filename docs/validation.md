@@ -31,6 +31,8 @@
 | Portalが左右に寄る | Camera Xは固定され、Canvas上の対応領域がscissorされる |
 | 複数のMedia Queryが一致 | `rules` の上から最初に一致したVariantだけが選ばれる |
 | どのMedia Queryにも一致しない | 必須の `otherwise` Variantが選ばれる |
+| 非アクティブなruleの参照先が不正 | 初期化時に設定例外を投げて処理を終了する |
+| 非アクティブなScene Variantが完全状態を再現できない | 初期化時に設定例外を投げて処理を終了する |
 | viewport条件が切り替わる | Projection ProfileとScene Variantが一式で再適用される |
 | 条件付きVariantから `otherwise` へ戻る | 以前のScene調整が残らず、`otherwise` の完全な状態になる |
 | Runtimeを破棄 | 登録したMedia Queryの変更listenerが解除される |
@@ -72,13 +74,19 @@
 - Cameraを `(0, cameraY, referenceCameraDistance)` に置き、Camera Yにかかわらず負のZ方向へ向けられる。
 - 不正なRender Camera FOVによって、Camera状態の一部だけが更新されない。
 
-## 実装時に決める項目
+## 第1段階の実装値
 
-次の具体値は設計上の未決事項ではなく、初期実装と表示確認の中で決める。
+WebGL基準実装では次の値と処理を採用する。これらはPortal Geometryの一般式ではなく、Runtime、Projection Profile、Scene、Page / UIの設定値である。
 
-- `near` と `far`
-- DPR上限
-- Media Queryと各Projection Profileの具体値
-- SceneのGeometry、Material、LightとScene Variantの具体値
-- scissor座標の端数処理
+- Cameraの `near` は `0.1`、`far` は `100`
+- DPR上限は `2`
+- responsive breakpointは `(min-width: 768px)`
+- Wide Profileは基準FOV `42deg`、基準投影高 `3m`、Camera Y `3m` から `0m`
+- Narrow Profileは基準FOV `50deg`、基準投影高 `4m`、Camera Y `3.5m` から `-0.5m`
+- 暖色SceneはBox群、寒色SceneはSphereとCylinder群で構成し、それぞれ近景、中景、遠景とLightを持つ
+- Scene Variantはrootのposition、rotation、scaleと、全visibility targetの表示状態を絶対値で適用する
+- WebGL scissorは可視領域を欠落させないよう、左と下を `floor`、右と上を `ceil` する
+
+## 未決事項
+
 - 対応ブラウザ範囲
