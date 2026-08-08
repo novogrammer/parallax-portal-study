@@ -140,26 +140,24 @@ main {
 
 .p-home-introduction .p-portal-copy {
   position: static;
-  width: 100%;
-  padding: 0 24px * $px-to-vw-sp;
   transform: none;
-
-  @include mq-pc() {
-    padding: 0 64px;
-  }
 }
 
+.p-home-introduction .p-portal-copy,
 .p-home-introduction__text {
   width: 100%;
-  padding: 0 24px * $px-to-vw-sp;
+  margin-right: 0;
+  margin-left: auto;
+  padding: 28px * $px-to-vw-sp 24px * $px-to-vw-sp;
+  color: #211c18;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 12px 40px rgba(30, 22, 17, 0.12);
+  backdrop-filter: blur(8px);
 
   @include mq-pc() {
-    padding: 0 64px;
+    width: 600px;
+    padding: 40px 48px;
   }
-}
-
-.p-home-introduction__text--right {
-  text-align: right;
 }
 
 .p-home-introduction__text h3 {
@@ -168,14 +166,12 @@ main {
   font-weight: 500;
   line-height: 1;
   letter-spacing: -0.045em;
-  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.34);
 }
 
 .p-home-introduction__text > p:last-child {
   margin-top: 20px;
   font-size: clamp(0.9rem, 1.4vw, 1.05rem);
   line-height: 1.8;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
 }
 
 .p-home-showcase {
@@ -219,6 +215,11 @@ main {
 
 .p-home-introduction .p-portal-copy h2 {
   font-size: clamp(3rem, 6vw, 5.5rem);
+  text-shadow: none;
+}
+
+.p-home-introduction .p-portal-copy > p:last-child {
+  text-shadow: none;
 }
 
 .p-portal-copy > p:last-child {
