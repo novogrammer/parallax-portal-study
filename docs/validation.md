@@ -79,6 +79,7 @@ WebGL基準実装では次の値と処理を採用する。これらはPortal Ge
 - 暖色Sceneと寒色SceneのScene Configurationは、現時点ではCamera Y `3m` から `0m` とする
 - wide / narrowは同じ基準投影高を異なるFOVで観測し、基準Camera距離はFOVから個別に導出する
 - 暖色SceneはBox群、寒色SceneはSphereとCylinder群で構成し、それぞれ近景、中景、遠景とLightを持つ
+- Camera Y範囲内の `X = 0m`、`Z = 0m` に、Y方向1m間隔の小さなCubeを検証用目印として置く
 - Scene rootはpositionとrotationを0、scaleを1に維持し、個々のオブジェクト配置はScene生成コードで定義する
 - WebGL scissorは可視領域を欠落させないよう、左と下を `floor`、右と上を `ceil` する
 

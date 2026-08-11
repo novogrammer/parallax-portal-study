@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import type { SceneConfiguration } from './types.ts'
 
 export interface StudySceneBundle {
   scene: THREE.Scene
@@ -17,6 +18,19 @@ function addCommonLights(scene: THREE.Scene, accent: THREE.ColorRepresentation):
   const fill = new THREE.DirectionalLight(0xffffff, 1.1)
   fill.position.set(4, 1, 2)
   scene.add(ambient, key, fill)
+}
+
+function addYMeterMarkers(root: THREE.Group, sceneConfiguration: SceneConfiguration): void {
+  const geometry = new THREE.BoxGeometry(0.12, 0.12, 0.12)
+  const material = new THREE.MeshBasicMaterial({ color: 0xffffff })
+  const bottomY = Math.ceil(Math.min(sceneConfiguration.cameraTopY, sceneConfiguration.cameraBottomY))
+  const topY = Math.floor(Math.max(sceneConfiguration.cameraTopY, sceneConfiguration.cameraBottomY))
+
+  for (let y = bottomY; y <= topY; y += 1) {
+    const marker = new THREE.Mesh(geometry, material)
+    marker.position.set(0, y, 0)
+    root.add(marker)
+  }
 }
 
 function createWarmScene(root: THREE.Group): void {
@@ -97,24 +111,26 @@ function disposeScene(scene: THREE.Scene): void {
   scene.clear()
 }
 
-export function createStudyScene(sceneId: string): StudySceneBundle {
+export function createStudyScene(sceneConfiguration: SceneConfiguration): StudySceneBundle {
   const scene = new THREE.Scene()
   const root = new THREE.Group()
   scene.add(root)
 
   let clearColor: THREE.ColorRepresentation
 
-  if (sceneId === 'warm-boxes') {
+  if (sceneConfiguration.sceneId === 'warm-boxes') {
     clearColor = 0x2c160d
     addCommonLights(scene, 0xffc857)
     createWarmScene(root)
-  } else if (sceneId === 'cool-orbits') {
+  } else if (sceneConfiguration.sceneId === 'cool-orbits') {
     clearColor = 0x071c2c
     addCommonLights(scene, 0x73fbd3)
     createCoolScene(root)
   } else {
-    throw new Error(`Unknown study scene: ${sceneId}`)
+    throw new Error(`Unknown study scene: ${sceneConfiguration.sceneId}`)
   }
+
+  addYMeterMarkers(root, sceneConfiguration)
 
   return {
     scene,

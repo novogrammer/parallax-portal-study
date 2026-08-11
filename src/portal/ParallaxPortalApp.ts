@@ -85,7 +85,7 @@ export class ParallaxPortalApp {
           throw new Error(`Portal element "${configuration.portalId}" was not found.`)
         }
 
-        const sceneBundle = createStudyScene(configuration.sceneId)
+        const sceneBundle = createStudyScene(sceneConfiguration)
 
         try {
           return new PortalInstance(
