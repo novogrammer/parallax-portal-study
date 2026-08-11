@@ -26,7 +26,7 @@ Portal Geometry <--- Projection Profile
         |
         +---------- Scene Configuration
         |
-        +---------- referenceProjectionHeightMeters
+        +---------- App共通のreferenceProjectionHeightMeters
     |
     | Camera position, projection, scissor rect
     v
@@ -37,7 +37,7 @@ Renderer Adapter ---> position: fixed Canvas ---> Scene
 - Portalとviewportの交差矩形はscissorだけに使う。
 - WebGL viewportは常にCanvas全体とし、Portalごとに変更しない。
 - 部分表示時もCameraと構図を切り替えず、描画範囲だけを狭める。
-- 複数Portalはそれぞれ独立したScene、Camera、Scene Configurationを持ち、閲覧条件に応じたProjection Profileを選べる。
+- 複数Portalはそれぞれ独立したSceneとCameraを持ち、`sceneId` に対応するScene Configurationと、閲覧条件に応じたProjection Profileを受け取る。
 - SceneインスタンスはPortalごとに生成し、同じ `sceneId` を使うPortal間でも共有しない。
 - Camera Xは初期値に固定し、PortalのX位置やスクロールでは動かさない。
 - 左右に寄ったPortalは、Canvas全体へ投影されたSceneの対応領域をそのままscissorする。
@@ -88,9 +88,11 @@ SceneConfiguration
 
 `cameraTopY` と `cameraBottomY` はスクロールによって観測するScene内の垂直範囲を表す。縦長のSceneではCamera Yの移動範囲を広げる。
 
-### 共通基準投影高
+PortalのCSS高とCamera Yの移動範囲は、それぞれPage / UIとScene Configurationが所有するデザイン入力である。両者の比率をPortal間で揃えるかどうかはデザイン判断とし、Portal Geometryは比率を統一または補正しない。
 
-`referenceProjectionHeightMeters` はReference Plane上で一度に見せる基準高であり、Sceneやviewport条件によって変えないグローバルな設定値とする。Projection Profileの `referenceFovY` と組み合わせて、viewport条件ごとの基準Camera距離を導出する。
+### App共通基準投影高
+
+`referenceProjectionHeightMeters` はProjection Profileの `referenceFovY` と組み合わせて基準Camera距離を導出する、投影キャリブレーション上の高さである。1つのParallaxPortalAppが管理するPortal群で共有し、Sceneやviewport条件によって変更しない。各フレームで実際に描画される垂直範囲そのものではない。
 
 ### Projection Profile
 
@@ -181,7 +183,7 @@ Camera Yが移動してもCameraの向きは負のZ方向に固定する。原�
 1. viewport寸法とfull Portal rectを取得する。
 2. Portalとviewportの交差矩形を求める。
 3. 交差領域がなければ描画対象から外す。
-4. Projection Profile、共通基準投影高、Scene Configuration、full Portal rectからCamera Y、Camera距離、Render Camera FOV Yを導出する。
+4. Projection Profile、App共通基準投影高、Scene Configuration、full Portal rectからCamera Y、Camera距離、Render Camera FOV Yを導出する。
 5. Motion Policyが実装されている段階では追加演出を適用する。第1段階では何も適用しない。
 6. Canvas全体のWebGL viewportを維持したまま、交差矩形をscissorへ設定する。
 7. scissor内のcolor bufferとdepth bufferをclearしてSceneを描画する。

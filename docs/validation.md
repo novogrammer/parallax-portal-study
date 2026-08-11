@@ -20,6 +20,7 @@
 | 同じScene IDを複数Portalで使用 | Portalごとに異なるSceneインスタンスが生成される |
 | CSSでvw指定 | `getBoundingClientRect()` のCSS px実測値で計算できる |
 | CSSでpx指定 | `getBoundingClientRect()` のCSS px実測値で同じ計算を使える |
+| Portal間でCSS高とCamera移動高の比率が異なる | 比率を統一せず、Portalごとの `cameraMetersPerCssPixel` を投影へ反映する |
 | resize | 実測DOM矩形とCanvas寸法から連続的に再計算される |
 | ブラウザズーム | CSS pxへ正規化した寸法比で再計算される |
 | progressが0未満または1超 | clampせず、同じ式でCamera Yが線形外挿される |
@@ -50,6 +51,7 @@
 - Reference FOV、Canvas / DOM高比、Camera移動高 / 基準投影高比からRender Camera FOVを一意に導出できる。
 - Camera移動高と基準投影高の同値を必須条件にしない。
 - CSSの記述単位を解析せず、`getBoundingClientRect()` のCSS px実測値だけで計算できる。
+- Portal間の `cameraMetersPerCssPixel` の一致を必須条件にしない。
 - 部分表示時に交差矩形をFOVまたはCamera Yの計算へ使わない。
 - WebGL viewportをPortal矩形へ変更せず、Canvas全体への投影をscissorだけで切り取れる。
 - Portalごとの描画結果が、以前に描画したPortalのcolor bufferまたはdepth bufferに影響されない。
@@ -75,12 +77,12 @@ WebGL基準実装では次の値と処理を採用する。これらはPortal Ge
 - DPR上限は `2`
 - responsive breakpointは `(min-width: 768px)`
 - Wide Profileは基準FOV `42deg`、Narrow Profileは基準FOV `50deg`
-- グローバルな基準投影高は `3m` とし、Sceneやviewport条件によって変更しない
+- ParallaxPortalApp内で共有する基準投影高は `3m` とし、Sceneやviewport条件によって変更しない
 - 暖色SceneはCamera Y `7.5m` から `0m`、寒色Sceneは `3m` から `0m` とする
-- SPのIntroduction高はShowcase高の `2.5倍` とし、Camera移動高も同じ比率にする
+- 習作で比較しやすいデザイン値として、SPのIntroduction高とCamera移動高をShowcaseの `2.5倍` とする。この比率はPortal Geometryの一般要件ではない
 - wide / narrowは同じ基準投影高を異なるFOVで観測し、基準Camera距離はFOVから個別に導出する
 - 暖色SceneはBox群、寒色SceneはSphereとCylinder群で構成し、それぞれ近景、中景、遠景とLightを持つ
-- Camera Y範囲内の `X = 0m`、`Z = 0m` に、Y方向1m間隔の小さなCubeを検証用目印として置く
+- CSS高とCamera移動の対応を目視確認するための診断要素として、Camera Y範囲内の `X = 0m`、`Z = 0m` にY方向1m間隔の小さなCubeを一時的に置く
 - Scene rootはpositionとrotationを0、scaleを1に維持し、個々のオブジェクト配置はScene生成コードで定義する
 - WebGL scissorは可視領域を欠落させないよう、左と下を `floor`、右と上を `ceil` する
 

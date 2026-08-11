@@ -2,7 +2,7 @@
 
 ## 目的
 
-Projection Profileで指定する基準FOV、グローバル設定の基準投影高、Scene Configurationで指定するCamera Y範囲、画面全体の `position: fixed` Canvasで使う描画CameraのFOVを分離して定義する。
+Projection Profileで指定する基準FOV、ParallaxPortalApp内で共有する基準投影高、Scene Configurationで指定するCamera Y範囲、画面全体の `position: fixed` Canvasで使う描画CameraのFOVを分離して定義する。
 
 設定値の `referenceFovY` は基準投影領域とCamera距離を定義する設計用FOVであり、描画Cameraへ直接適用しない。実際の描画では、PortalのCSS実測高とCanvas高の比を反映した `renderCameraFovY` を導出し、固定Canvas上でCSSと3Dの垂直スケールが対応するように投影する。
 
@@ -33,7 +33,7 @@ Projection Profileで指定する基準FOV、グローバル設定の基準投�
 
 ## Reference Projection
 
-Projection Profileの `referenceFovY` とグローバル設定の `referenceProjectionHeightMeters` は、基準Camera距離を決める独立した入力値である。FOVを1m当たりの換算値として扱わない。
+Projection Profileの `referenceFovY` とApp共通設定の `referenceProjectionHeightMeters` は、基準Camera距離を決める独立した入力値である。FOVを1m当たりの換算値として扱わない。
 
 Reference Planeまでの基準Camera距離は次の導出値になる。
 
@@ -80,6 +80,8 @@ cameraMetersPerCssPixel = cameraTravelHeightMeters / h
 renderProjectionHeightMeters = Vh * cameraMetersPerCssPixel
 ```
 
+PortalのCSS高とCamera移動高はデザイン入力であり、`cameraMetersPerCssPixel` をPortal間で一致させることはシステム要件ではない。pxとvwの混在やviewport幅の変化によってPortalごとの値が異なる場合も正常とし、Portal Geometryは与えられた比率をそのまま投影へ反映する。
+
 `referenceCameraDistance`を維持したまま、画面全体のCanvasへ `renderProjectionHeightMeters` を収めるFOVを描画Cameraへ設定する。
 
 ```text
@@ -111,7 +113,7 @@ renderCameraFovY =
 
 ## DOM寸法と実行時矩形
 
-Portalの寸法はCSSだけが所有する。Projection Profile、共通基準投影高、Scene ConfigurationにはDOM寸法やCSS単位を保持しない。
+Portalの寸法はCSSだけが所有する。Projection Profile、App共通基準投影高、Scene ConfigurationにはDOM寸法やCSS単位を保持しない。
 
 - CSSではpx、vw、media queryなどを自由に使える。
 - DOM Adapterは毎フレーム `getBoundingClientRect()` から実測矩形を取得する。
