@@ -1,6 +1,6 @@
 import './style.scss'
 import { ParallaxPortalApp } from './portal/ParallaxPortalApp.ts'
-import { portalConfigurations, projectionProfiles, sceneVariants } from './portal/config.ts'
+import { portalConfigurations, projectionProfiles } from './portal/config.ts'
 
 function main(): void {
   const canvas = document.querySelector<HTMLCanvasElement>('.p-home-canvas')
@@ -13,7 +13,6 @@ function main(): void {
     canvas,
     configurations: portalConfigurations,
     profiles: projectionProfiles,
-    sceneVariants,
   })
 
   app.initialize()

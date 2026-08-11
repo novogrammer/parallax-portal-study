@@ -18,7 +18,6 @@
 | 同じSceneを異なるProfileで使用 | 各Portalが独立したCamera結果を持つ |
 | 異なるSceneとProfileを使用 | 一方の設定変更が他方へ影響しない |
 | 同じScene IDを複数Portalで使用 | Portalごとに異なるSceneインスタンスが生成される |
-| Scene Variantを切り替える | 既存Sceneへ完全な状態が絶対値で再適用される |
 | CSSでvw指定 | `getBoundingClientRect()` のCSS px実測値で計算できる |
 | CSSでpx指定 | `getBoundingClientRect()` のCSS px実測値で同じ計算を使える |
 | resize | 実測DOM矩形とCanvas寸法から連続的に再計算される |
@@ -30,8 +29,8 @@
 | 複数のMedia Queryが一致 | `rules` の上から最初に一致したVariantだけが選ばれる |
 | どのMedia Queryにも一致しない | 必須の `otherwise` Variantが選ばれる |
 | 非アクティブなruleの参照先が不正 | 初期化時に設定例外を投げて処理を終了する |
-| viewport条件が切り替わる | Projection ProfileとScene Variantが一式で再適用される |
-| 条件付きVariantから `otherwise` へ戻る | 以前のScene調整が残らず、`otherwise` の完全な状態になる |
+| viewport条件が切り替わる | 選択されたProjection Profileが適用される |
+| 条件付きVariantから `otherwise` へ戻る | `otherwise` が指定するProjection Profileへ戻る |
 | Runtimeを破棄 | 登録したMedia Queryの変更listenerが解除される |
 | Camera Yが移動 | Camera Xは `0m`、Camera Zは基準Camera距離、向きは負のZ方向に維持される |
 | 設定値から不正なFOVが導出される | 初期化時に設定例外を投げて処理を終了する |
@@ -62,9 +61,8 @@
 - Camera XをPortal位置またはスクロールによって変更しない。
 - Media Queryの重複や不一致にかかわらず、優先順位と `otherwise` により常に1つのVariantを選択できる。
 - ブレークポイントとVariantの対応を設定で変更でき、Portal固有の条件分岐を共通選択処理へ追加する必要がない。
-- Variant切り替え後のProjection ProfileとScene状態が、切り替え前のVariantに依存しない。
-- Scene Variantを差分として適用せず、既存Sceneへ絶対値で再適用できる。
-- SceneインスタンスをPortal間で共有せず、Scene Variantの調整が他のPortalへ影響しない。
+- Variant切り替え後のProjection Profileが、切り替え前のVariantに依存しない。
+- SceneインスタンスをPortal間で共有せず、一方のPortalの状態が他方へ影響しない。
 - `portalId` によってPortal ConfigurationとDOM要素を一意に対応付けられる。
 - Cameraを `(0, cameraY, referenceCameraDistance)` に置き、Camera Yにかかわらず負のZ方向へ向けられる。
 - 不正なRender Camera FOVによって、Camera状態の一部だけが更新されない。
@@ -79,7 +77,7 @@ WebGL基準実装では次の値と処理を採用する。これらはPortal Ge
 - Wide Profileは基準FOV `42deg`、基準投影高 `3m`、Camera Y `3m` から `0m`
 - Narrow Profileは基準FOV `50deg`、基準投影高 `4m`、Camera Y `3.5m` から `-0.5m`
 - 暖色SceneはBox群、寒色SceneはSphereとCylinder群で構成し、それぞれ近景、中景、遠景とLightを持つ
-- Scene Variantはrootのpositionとrotationを絶対値で適用し、rootのscaleは常に1に維持する
+- Scene rootはpositionとrotationを0、scaleを1に維持し、個々のオブジェクト配置はScene生成コードで定義する
 - WebGL scissorは可視領域を欠落させないよう、左と下を `floor`、右と上を `ceil` する
 
 ## 未決事項

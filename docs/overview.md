@@ -68,7 +68,7 @@ vertical FOVの上側は3D空間の正のY方向、下側は負のY方向に対�
 
 ### Scene
 
-TypeScriptコードから生成するThree.jsの3Dコンテンツ。長さはm、座標方向は共通定義に従い、オブジェクトを実際の3D位置へ配置する。Scene rootのscaleは常に1とし、Geometryへ指定した1 unitをWorld上の1mとして維持する。表示範囲はCameraのfrustumとPortalのscissorによって決まり、Sceneはsafe area、推奨深度、構図を規定しない。
+TypeScriptコードから生成するThree.jsの3Dコンテンツ。長さはm、座標方向は共通定義に従い、オブジェクトを実際の3D位置へ配置する。Scene rootはpositionとrotationを0、scaleを1に維持し、Geometryへ指定した1 unitをWorld上の1mとして扱う。個々のオブジェクトの位置と回転はScene生成コードで明示する。表示範囲はCameraのfrustumとPortalのscissorによって決まり、Sceneはsafe area、推奨深度、構図を規定しない。
 
 ### Projection Profile
 
@@ -85,7 +85,7 @@ ProjectionProfile
 
 ### Portal Configuration
 
-DOM窓とSceneを関連付け、viewport条件に応じてProjection ProfileとScene Variantの組み合わせを選択する。
+DOM窓とSceneを関連付け、viewport条件に応じてProjection Profileを選択する。
 
 ```text
 PortalConfiguration
@@ -95,22 +95,16 @@ PortalConfiguration
     ├── rules[]
     │   ├── query
     │   └── variant
-    │       ├── projectionProfileId
-    │       └── sceneVariantId
+    │       └── projectionProfileId
     └── otherwise
-        ├── projectionProfileId
-        └── sceneVariantId
+        └── projectionProfileId
 ```
 
 `portalId` は一意とし、DOM側の `[data-portal-id="..."]` と対応させる。要素が見つからない場合は初期化時の設定例外とする。
 
 `query` は `window.matchMedia()` へ渡すMedia Query文字列とし、具体的なブレークポイントとVariantの対応はTypeScriptの設定オブジェクトに記述する。Portalごとの条件分岐を選択ロジックへハードコードしない。
 
-共通の選択処理は `rules` を上から評価し、最初に一致したVariantを選ぶ。どの条件にも一致しない場合は必須の `otherwise` を選ぶため、常にちょうど1つのVariantが有効になる。各Variantは差分ではなく完全な状態として扱い、切り替え時にはProjection ProfileとScene Variantの両方を適用する。
-
-`sceneVariantId` はコード生成Sceneへ渡す調整一式を識別する。既存Sceneのrootへ位置と回転を絶対値で再適用し、以前のVariantによる状態を残さない。`otherwise` を含むすべてのVariantが完全なpositionとrotationを再現できるものとする。
-
-Scene VariantはMedia Queryによって選択し、Portalごとに所有するSceneインスタンスへ適用する。他のPortalのScene状態には影響しない。
+共通の選択処理は `rules` を上から評価し、最初に一致したVariantを選ぶ。どの条件にも一致しない場合は必須の `otherwise` を選ぶため、常にちょうど1つのVariantが有効になる。各Variantは適用するProjection Profileを完全に指定する。
 
 `renderCameraFovY`、Camera Y移動高、Camera距離、スクロール進行値は設定として保持せず、実行時に導出する。
 
@@ -144,7 +138,7 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 - 導出したCamera値の描画エンジンへの適用
 - 描画対象Portalの選別
 - Sceneの生成結果の受け取りと破棄
-- Media Queryの変更時に有効なVariantを再選択し、完全な状態として適用
+- Media Queryの変更時に有効なVariantを再選択し、Projection Profileを適用
 - Runtime破棄時にMedia Queryの変更listenerを解除
 - 常時requestAnimationFrameによる描画ループ
 
@@ -158,7 +152,7 @@ Camera Yが移動してもCameraの向きは負のZ方向に固定する。原�
 - Portalの寸法をCSSで定義し、pxまたはvwなどのCSS単位を使用
 - DOM Adapterが毎フレーム `getBoundingClientRect()` からfull Portal rectをCSS pxで取得
 - style文字列やCSS単位をJavaScriptで解析しない
-- viewport条件、Projection Profile、Scene Variantの対応を設定として定義
+- viewport条件とProjection Profileの対応を設定として定義
 - アクセシビリティと前面レイヤー
 
 ## 1フレームのデータフロー

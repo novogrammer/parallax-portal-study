@@ -1,15 +1,14 @@
 import { validateProjectionProfile } from './geometry.ts'
 import { PortalInstance } from './PortalInstance.ts'
 import { PortalRenderer } from './PortalRenderer.ts'
-import { validatePortalVariantReferences } from './responsive.ts'
+import { validateProjectionProfileReferences } from './responsive.ts'
 import { createStudyScene } from './studyScene.ts'
-import type { PortalConfiguration, ProjectionProfile, SceneVariant } from './types.ts'
+import type { PortalConfiguration, ProjectionProfile } from './types.ts'
 
 export interface ParallaxPortalAppOptions {
   canvas: HTMLCanvasElement
   configurations: readonly PortalConfiguration[]
   profiles: readonly ProjectionProfile[]
-  sceneVariants: readonly SceneVariant[]
 }
 
 function createUniqueMap<T>(items: readonly T[], getId: (item: T) => string, label: string): Map<string, T> {
@@ -44,11 +43,6 @@ export class ParallaxPortalApp {
     }
 
     const profiles = createUniqueMap(this.options.profiles, ({ profileId }) => profileId, 'profileId')
-    const sceneVariants = createUniqueMap(
-      this.options.sceneVariants,
-      ({ sceneVariantId }) => sceneVariantId,
-      'sceneVariantId',
-    )
     const portalIds = new Set<string>()
 
     profiles.forEach(validateProjectionProfile)
@@ -60,7 +54,7 @@ export class ParallaxPortalApp {
         }
         portalIds.add(configuration.portalId)
 
-        validatePortalVariantReferences(configuration, profiles, sceneVariants)
+        validateProjectionProfileReferences(configuration, profiles)
 
         const element = document.querySelector<HTMLElement>(
           `[data-portal-id="${CSS.escape(configuration.portalId)}"]`,
@@ -77,7 +71,6 @@ export class ParallaxPortalApp {
             configuration,
             element,
             profiles,
-            sceneVariants,
             sceneBundle,
           )
         } catch (error) {

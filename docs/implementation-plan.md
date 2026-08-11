@@ -33,14 +33,14 @@ WebGLRendererを使い、垂直投影、スクロール連動Camera、複数Port
 - ページ全体で共有する1枚の透明な `position: fixed` Canvas
 - Three.jsのWebGLRenderer
 - 2つのPortal
-- Portalごとに独立したScene、PerspectiveCamera、Projection Profile、Scene Variant
+- Portalごとに独立したScene、PerspectiveCamera、Projection Profile
 - 近景、中景、遠景の視差を確認できるプリミティブGeometryによる検証Scene
 - full Portal rectを使ったCamera Y、Camera距離、Render Camera FOVの導出
 - Portalとviewportの交差矩形を使ったscissor描画
 - Portal描画前のscissor内color bufferとdepth bufferのclear
 - Canvas resize、Camera aspect更新、DPR上限
 - PCとSPを想定した2種類以上のresponsive Variant
-- Media Query変更時のProjection ProfileとScene Variantの完全な再適用
+- Media Query変更時のProjection Profileの再適用
 - 初期化時の設定検証と、実行時入力から不正値が導出された場合の状態維持
 - RuntimeとMedia Query listenerを破棄する処理
 - 幾何計算とVariant選択の単体テスト
@@ -78,8 +78,7 @@ WebGLRendererを使い、垂直投影、スクロール連動Camera、複数Port
 #### `PortalInstance`
 
 - 1つのPortalに対応するDOM要素、Scene、Cameraを所有する。
-- 現在選択されているProjection ProfileとScene Variantを保持する。
-- Variantを既存Sceneへ完全な状態として適用する。
+- 現在選択されているProjection Profileを保持する。
 - Portal固有のThree.jsリソースを破棄する。
 
 #### `ResponsiveVariantController`
@@ -103,7 +102,7 @@ WebGLRendererを使い、垂直投影、スクロール連動Camera、複数Port
 
 ### Scene生成
 
-検証Sceneは状態を持たない生成関数から作る。生成結果にはScene本体、Variantを完全適用する処理、破棄に必要な処理を含める。Sceneの具体的なGeometry、Material、LightをPortalRendererへ埋め込まない。
+検証Sceneは生成関数から作る。生成結果にはScene本体と破棄に必要な処理を含める。個々のオブジェクト配置を含む具体的なGeometry、Material、LightをPortalRendererへ埋め込まない。
 
 ### 完了条件
 
@@ -111,7 +110,7 @@ WebGLRendererを使い、垂直投影、スクロール連動Camera、複数Port
 - 2つのPortalが同時表示されても、各Sceneが対応するscissor領域だけに描画される。
 - Portal外のCanvas領域が透明に維持される。
 - 近景、中景、遠景が実際のZ距離に応じた視差を示す。
-- PCとSPのVariant切り替え後に、以前のVariantのScene状態が残らない。
+- PCとSPのVariant切り替え後に、選択されたProjection Profileが正しく適用される。
 - 単体テスト、TypeScriptの型検査、本番ビルドが成功する。
 - Chromeでスクロールとresizeを行い、CameraとFOVが不連続に変化しないことを確認できる。
 - Consoleに未処理の例外や毎フレーム繰り返されるエラーがない。

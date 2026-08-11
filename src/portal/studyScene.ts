@@ -1,10 +1,8 @@
 import * as THREE from 'three'
-import type { SceneVariant } from './types.ts'
 
 export interface StudySceneBundle {
   scene: THREE.Scene
   clearColor: THREE.ColorRepresentation
-  applyVariant: (variant: SceneVariant) => void
   dispose: () => void
 }
 
@@ -121,10 +119,6 @@ export function createStudyScene(sceneId: string): StudySceneBundle {
   return {
     scene,
     clearColor,
-    applyVariant: (variant) => {
-      root.position.set(...variant.position)
-      root.rotation.set(...variant.rotation)
-    },
     dispose: () => disposeScene(scene),
   }
 }

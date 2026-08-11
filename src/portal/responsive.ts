@@ -1,20 +1,19 @@
-import type { PortalConfiguration, PortalVariant, ResponsiveRule } from './types.ts'
+import type { PortalConfiguration, ResponsiveRule, ResponsiveVariant } from './types.ts'
 
 interface IdLookup {
   has: (id: string) => boolean
 }
 
-export function listConfiguredVariants(configuration: PortalConfiguration): readonly PortalVariant[] {
+export function listConfiguredVariants(configuration: PortalConfiguration): readonly ResponsiveVariant[] {
   return [
     ...configuration.responsiveVariants.rules.map(({ variant }) => variant),
     configuration.responsiveVariants.otherwise,
   ]
 }
 
-export function validatePortalVariantReferences(
+export function validateProjectionProfileReferences(
   configuration: PortalConfiguration,
   profileIds: IdLookup,
-  sceneVariantIds: IdLookup,
 ): void {
   for (const variant of listConfiguredVariants(configuration)) {
     if (!profileIds.has(variant.projectionProfileId)) {
@@ -23,19 +22,14 @@ export function validatePortalVariantReferences(
       )
     }
 
-    if (!sceneVariantIds.has(variant.sceneVariantId)) {
-      throw new Error(
-        `Portal "${configuration.portalId}" references unknown scene variant "${variant.sceneVariantId}".`,
-      )
-    }
   }
 }
 
 export function selectResponsiveVariant(
   rules: readonly ResponsiveRule[],
   matches: readonly boolean[],
-  otherwise: PortalVariant,
-): PortalVariant {
+  otherwise: ResponsiveVariant,
+): ResponsiveVariant {
   if (rules.length !== matches.length) {
     throw new RangeError('rules and matches must have the same length.')
   }
@@ -44,22 +38,21 @@ export function selectResponsiveVariant(
   return matchedIndex === -1 ? otherwise : rules[matchedIndex].variant
 }
 
-function isSameVariant(left: PortalVariant, right: PortalVariant): boolean {
+function isSameVariant(left: ResponsiveVariant, right: ResponsiveVariant): boolean {
   return left.projectionProfileId === right.projectionProfileId
-    && left.sceneVariantId === right.sceneVariantId
 }
 
 export class ResponsiveVariantController {
   private readonly rules: readonly ResponsiveRule[]
-  private readonly otherwise: PortalVariant
+  private readonly otherwise: ResponsiveVariant
   private readonly mediaQueries: readonly MediaQueryList[]
-  private readonly onChange: (variant: PortalVariant) => void
-  private currentVariant: PortalVariant
+  private readonly onChange: (variant: ResponsiveVariant) => void
+  private currentVariant: ResponsiveVariant
 
   constructor(
     rules: readonly ResponsiveRule[],
-    otherwise: PortalVariant,
-    onChange: (variant: PortalVariant) => void,
+    otherwise: ResponsiveVariant,
+    onChange: (variant: ResponsiveVariant) => void,
   ) {
     this.rules = rules
     this.otherwise = otherwise
@@ -72,7 +65,7 @@ export class ResponsiveVariantController {
     }
   }
 
-  getCurrentVariant(): PortalVariant {
+  getCurrentVariant(): ResponsiveVariant {
     return this.currentVariant
   }
 
@@ -82,7 +75,7 @@ export class ResponsiveVariantController {
     }
   }
 
-  private selectCurrentVariant(): PortalVariant {
+  private selectCurrentVariant(): ResponsiveVariant {
     return selectResponsiveVariant(
       this.rules,
       this.mediaQueries.map(({ matches }) => matches),

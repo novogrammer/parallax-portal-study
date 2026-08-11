@@ -4,10 +4,9 @@ import { ResponsiveVariantController } from './responsive.ts'
 import type { StudySceneBundle } from './studyScene.ts'
 import type {
   PortalConfiguration,
-  PortalVariant,
   ProjectionProfile,
   Rect,
-  SceneVariant,
+  ResponsiveVariant,
   ViewportSize,
   WebGlScissorRect,
 } from './types.ts'
@@ -31,7 +30,6 @@ export class PortalInstance {
   private readonly configuration: PortalConfiguration
   private readonly element: HTMLElement
   private readonly profiles: ReadonlyMap<string, ProjectionProfile>
-  private readonly sceneVariants: ReadonlyMap<string, SceneVariant>
   private readonly sceneBundle: StudySceneBundle
   private readonly camera: THREE.PerspectiveCamera
   private readonly responsiveController: ResponsiveVariantController
@@ -43,13 +41,11 @@ export class PortalInstance {
     configuration: PortalConfiguration,
     element: HTMLElement,
     profiles: ReadonlyMap<string, ProjectionProfile>,
-    sceneVariants: ReadonlyMap<string, SceneVariant>,
     sceneBundle: StudySceneBundle,
   ) {
     this.configuration = configuration
     this.element = element
     this.profiles = profiles
-    this.sceneVariants = sceneVariants
     this.sceneBundle = sceneBundle
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100)
     this.camera.position.set(0, 0, 1)
@@ -58,12 +54,11 @@ export class PortalInstance {
     this.responsiveController = new ResponsiveVariantController(
       configuration.responsiveVariants.rules,
       configuration.responsiveVariants.otherwise,
-      this.applyPortalVariant,
+      this.applyResponsiveVariant,
     )
 
     const initialVariant = this.responsiveController.getCurrentVariant()
     this.activeProfile = this.requireProfile(initialVariant.projectionProfileId)
-    this.applyPortalVariant(initialVariant)
   }
 
   getRenderData(viewport: ViewportSize): PortalRenderData | null {
@@ -133,18 +128,8 @@ export class PortalInstance {
     this.sceneBundle.dispose()
   }
 
-  private readonly applyPortalVariant = (portalVariant: PortalVariant): void => {
-    const profile = this.requireProfile(portalVariant.projectionProfileId)
-    const sceneVariant = this.sceneVariants.get(portalVariant.sceneVariantId)
-
-    if (!sceneVariant) {
-      throw new Error(
-        `Portal "${this.configuration.portalId}" references unknown scene variant "${portalVariant.sceneVariantId}".`,
-      )
-    }
-
-    this.sceneBundle.applyVariant(sceneVariant)
-    this.activeProfile = profile
+  private readonly applyResponsiveVariant = (variant: ResponsiveVariant): void => {
+    this.activeProfile = this.requireProfile(variant.projectionProfileId)
     this.lastValidCameraState = null
     this.hasRuntimeGeometryError = false
   }

@@ -3,21 +3,21 @@ import test from 'node:test'
 import {
   listConfiguredVariants,
   selectResponsiveVariant,
-  validatePortalVariantReferences,
+  validateProjectionProfileReferences,
 } from '../src/portal/responsive.ts'
 
 const rules = [
   {
     query: '(min-width: 1200px)',
-    variant: { projectionProfileId: 'large', sceneVariantId: 'large' },
+    variant: { projectionProfileId: 'large' },
   },
   {
     query: '(min-width: 768px)',
-    variant: { projectionProfileId: 'medium', sceneVariantId: 'medium' },
+    variant: { projectionProfileId: 'medium' },
   },
 ]
 
-const otherwise = { projectionProfileId: 'small', sceneVariantId: 'small' }
+const otherwise = { projectionProfileId: 'small' }
 
 test('responsive selection uses the first matching rule', () => {
   assert.deepEqual(selectResponsiveVariant(rules, [true, true], otherwise), rules[0].variant)
@@ -46,20 +46,10 @@ test('configuration validation checks inactive rules as well as otherwise', () =
   ])
 
   assert.throws(
-    () => validatePortalVariantReferences(
+    () => validateProjectionProfileReferences(
       configuration,
       new Set(['medium', 'small']),
-      new Set(['large', 'medium', 'small']),
     ),
     /unknown profile "large"/,
-  )
-
-  assert.throws(
-    () => validatePortalVariantReferences(
-      configuration,
-      new Set(['large', 'medium', 'small']),
-      new Set(['medium', 'small']),
-    ),
-    /unknown scene variant "large"/,
   )
 })
