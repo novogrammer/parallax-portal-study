@@ -4,11 +4,7 @@
 
 DOM上をスクロールする窓の内側に3D空間を表示し、Scene内の実際の奥行きから視差を生じさせる仕組みを定義する。Portal Geometryは特定のSceneや描画ライブラリに依存させず、描画Runtimeと分離する。
 
-現在はVite + TypeScript + Three.jsによる第1段階のWebGL基準実装まで完了している。実装段階の現在地と対象範囲は[実装計画](./implementation-plan.md)を正本とする。
-
-Portalのスクロール方向は縦だけとし、表示領域は矩形とする。横方向スクロール、border radiusや任意形状mask、`prefers-reduced-motion` 対応は対象外とする。
-
-SceneはTypeScriptコードからThree.jsのGeometry、Material、Object3Dなどを生成して構築する。第1段階ではGLBなどの外部3Dアセットを読み込まず、GSAPも使用しない。viewport条件の監視にはネイティブの `window.matchMedia()` を使う。
+現在はVite + TypeScript + Three.jsによるWebGL基準実装まで完了している。対象範囲と次段階は[実装計画](./implementation-plan.md)を参照する。
 
 ## 全体構造
 
@@ -30,7 +26,7 @@ Portal Geometry <--- Projection Profile
     |
     | Camera position, projection, scissor rect
     v
-Renderer Adapter ---> position: fixed Canvas ---> Scene
+PortalRenderer ---> position: fixed Canvas ---> Scene
 ```
 
 - full Portal rectはCameraと投影の計算に使う。
@@ -38,12 +34,10 @@ Renderer Adapter ---> position: fixed Canvas ---> Scene
 - WebGL viewportは常にCanvas全体とし、Portalごとに変更しない。
 - 部分表示時もCameraと構図を切り替えず、描画範囲だけを狭める。
 - 複数Portalはそれぞれ独立したSceneとCameraを持ち、`sceneId` に対応するScene Configurationと、閲覧条件に応じたProjection Profileを受け取る。
-- SceneインスタンスはPortalごとに生成し、同じ `sceneId` を使うPortal間でも共有しない。
-- Camera Xは初期値に固定し、PortalのX位置やスクロールでは動かさない。
-- 左右に寄ったPortalは、Canvas全体へ投影されたSceneの対応領域をそのままscissorする。
+- SceneインスタンスはPortalごとに生成し、同じ `sceneId` でも共有しない。
+- Camera Xは `0m` に固定し、左右に寄ったPortalもCanvas全体への投影をscissorで切り取る。
 - Canvasは透明とし、Portal以外の領域では背面のDOMを表示する。
 - Portal同士は重ならないようにPage / UIで配置し、描画順による重なり規則は設けない。
-- CanvasをDOMより背面に置く場合、Portalとして見せる領域はCanvasを遮らないレイヤー構成にする。
 
 投影の計算は[垂直投影モデル](./vertical-projection.md)、確認事項は[検証](./validation.md)を正本とする。
 
@@ -140,41 +134,22 @@ PortalConfiguration
 
 DOM型、Three.js型、描画ループには依存しない純粋な計算とする。
 
-### Motion Policy
-
-- 追加の移動、回転、pointer入力
-
-将来の追加演出を分離するための拡張境界であり、第1段階では実装しない。基本Camera YはPortal Geometryがclampなしの線形補間で求め、将来Motion Policyを追加しても変更しない。
-
 ### Runtime
 
-- Page / UIが用意した `position: fixed` Canvasの受け取りと描画バッファのresize
-- Three.jsのWebGLRendererとPerspectiveCamera
-- alphaを有効にし、CanvasのPortal外領域を透明に維持
-- Cameraを `(0, cameraY, referenceCameraDistance)` に置き、回転なしで負のZ方向へ向ける
-- `near` と `far` にRuntime共通の代表値を使い、Scene規模に応じて調整
-- DPR上限
-- WebGL viewportをCanvas全体に固定し、Portalごとに交差矩形だけをscissorへ設定
-- Portal描画前にscissor内のcolor bufferとdepth bufferをclear
-- 導出したCamera値の描画エンジンへの適用
-- 描画対象Portalの選別
-- Sceneの生成結果の受け取りと破棄
-- Media Queryの変更時に有効なVariantを再選択し、Projection Profileを適用
-- Runtime破棄時にMedia Queryの変更listenerを解除
-- 常時requestAnimationFrameによる描画ループ
+- WebGLRenderer、PerspectiveCamera、固定Canvas、描画ループを管理する。
+- resize、DPR上限、Camera aspect、導出したCamera状態を描画へ反映する。
+- Canvas全体のviewportを維持し、Portalごとのscissor内をclearして描画する。
+- CanvasのPortal外領域を透明に維持する。
+- Media QueryによるProfile切り替えと、Scene、listener、Rendererの破棄を管理する。
 
-Camera Yが移動してもCameraの向きは負のZ方向に固定する。原点への `lookAt()` はCameraを傾けるため使用しない。
+Cameraは `(0, cameraY, referenceCameraDistance)` に置き、回転なしで負のZ方向へ向ける。Camera Yに応じて向きが変わる `lookAt()` は使用しない。
 
 ### Page / UI
 
-- DOM窓と通常コンテンツの配置
-- Portal同士が重ならない配置
-- 一意な `data-portal-id` とPortal Configurationの `portalId` の対応
-- Portalの寸法をCSSで定義し、pxまたはvwなどのCSS単位を使用
-- DOM Adapterが毎フレーム `getBoundingClientRect()` からfull Portal rectをCSS pxで取得
-- style文字列やCSS単位をJavaScriptで解析しない
-- viewport条件とProjection Profileの対応を設定として定義
-- アクセシビリティと前面レイヤー
+- DOM窓、通常コンテンツ、前面レイヤーを配置する。
+- 一意な `data-portal-id` とPortal Configurationの `portalId` を対応させる。
+- Portal寸法をCSSで定義し、Runtimeは `getBoundingClientRect()` のCSS px実測値を使う。
+- viewport条件とProjection Profileの対応を設定する。
 
 ## 1フレームのデータフロー
 
@@ -184,8 +159,7 @@ Camera Yが移動してもCameraの向きは負のZ方向に固定する。原�
 2. Portalとviewportの交差矩形を求める。
 3. 交差領域がなければ描画対象から外す。
 4. Projection Profile、App共通基準投影高、Scene Configuration、full Portal rectからCamera Y、Camera距離、Render Camera FOV Yを導出する。
-5. Motion Policyが実装されている段階では追加演出を適用する。第1段階では何も適用しない。
-6. Canvas全体のWebGL viewportを維持したまま、交差矩形をscissorへ設定する。
-7. scissor内のcolor bufferとdepth bufferをclearしてSceneを描画する。
+5. Canvas全体のWebGL viewportを維持したまま、交差矩形をscissorへ設定する。
+6. scissor内のcolor bufferとdepth bufferをclearしてSceneを描画する。
 
 Scene IDやProfile IDによる条件分岐をPortal Geometryへ埋め込まない。

@@ -4,6 +4,8 @@
 
 | ケース | 期待結果 |
 | --- | --- |
+| Reference FOVと基準投影高 | 基準Camera距離を一意に導出できる |
+| vertical FOV | 上側が正のY、下側が負のYへ投影される |
 | `centerProgress = 0` | `cameraY = cameraTopY` |
 | `centerProgress = 1` | `cameraY = cameraBottomY` |
 | Camera移動高と基準投影高が同じ | FOV変換の高さ比が1になる |
@@ -18,6 +20,7 @@
 | 同じSceneを異なるProfileで使用 | 各Portalが独立したCamera結果を持つ |
 | 異なるSceneとProfileを使用 | 一方の設定変更が他方へ影響しない |
 | 同じScene IDを複数Portalで使用 | Portalごとに異なるSceneインスタンスが生成される |
+| Scene内のZ距離が異なる | 透視投影上の視差が変化する |
 | CSSでvw指定 | `getBoundingClientRect()` のCSS px実測値で計算できる |
 | CSSでpx指定 | `getBoundingClientRect()` のCSS px実測値で同じ計算を使える |
 | Portal間でCSS高とCamera移動高の比率が異なる | 比率を統一せず、Portalごとの `cameraMetersPerCssPixel` を投影へ反映する |
@@ -40,34 +43,6 @@
 | 不正状態が複数フレーム継続 | `console.error` を毎フレーム繰り返さない |
 | `data-portal-id` と `portalId` が一致 | DOM窓とPortal Configurationが一意に対応する |
 | `portalId` に対応するDOM要素がない | 初期化時に設定例外を投げて処理を終了する |
-
-## 合格条件
-
-- vertical FOVの上側が3D空間の正のY方向、下側が負のY方向へ投影される。
-- Reference FOVと基準投影高から基準Camera距離を一意に導出できる。
-- Camera Yの上下端からCamera移動高を一意に導出できる。
-- `centerProgress` を範囲外でもclampせず、Camera Yを線形外挿する。
-- Camera Y移動高が0なら設定例外を投げて処理を終了する。
-- Reference FOV、Canvas / DOM高比、Camera移動高 / 基準投影高比からRender Camera FOVを一意に導出できる。
-- Camera移動高と基準投影高の同値を必須条件にしない。
-- CSSの記述単位を解析せず、`getBoundingClientRect()` のCSS px実測値だけで計算できる。
-- Portal間の `cameraMetersPerCssPixel` の一致を必須条件にしない。
-- 部分表示時に交差矩形をFOVまたはCamera Yの計算へ使わない。
-- WebGL viewportをPortal矩形へ変更せず、Canvas全体への投影をscissorだけで切り取れる。
-- Portalごとの描画結果が、以前に描画したPortalのcolor bufferまたはdepth bufferに影響されない。
-- Portal外のCanvas領域を透明に維持できる。
-- Scene内の実際のZ距離に応じて透視投影上の視差が変化する。
-- Scene IDやProfile IDによる条件分岐をPortal Geometryへ埋め込まない。
-- Portalの描画順が各PortalのCamera計算へ影響しない。
-- 表示対象Portalの有無にかかわらずrequestAnimationFrameを継続する。
-- Camera XをPortal位置またはスクロールによって変更しない。
-- Media Queryの重複や不一致にかかわらず、優先順位と `otherwise` により常に1つのVariantを選択できる。
-- ブレークポイントとVariantの対応を設定で変更でき、Portal固有の条件分岐を共通選択処理へ追加する必要がない。
-- Variant切り替え後のProjection Profileが、切り替え前のVariantに依存しない。
-- SceneインスタンスをPortal間で共有せず、一方のPortalの状態が他方へ影響しない。
-- `portalId` によってPortal ConfigurationとDOM要素を一意に対応付けられる。
-- Cameraを `(0, cameraY, referenceCameraDistance)` に置き、Camera Yにかかわらず負のZ方向へ向けられる。
-- 不正なRender Camera FOVによって、Camera状態の一部だけが更新されない。
 
 ## 第1段階の実装値
 

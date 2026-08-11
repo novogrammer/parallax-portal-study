@@ -19,8 +19,6 @@ Projection Profileで指定する基準FOV、ParallaxPortalApp内で共有する
 | `By` | `cameraBottomY` | Portal下端がviewport中央に来たときのCamera Y | m |
 | `pi` | 円周率 | 約3.14159 | 無次元 |
 
-会話中の仮記号との対応は、`p.height = Hp`、`t.y = Ty`、`b.y = By` とする。
-
 前提条件は次のとおり。
 
 - `Vh > 0`
@@ -40,8 +38,6 @@ Reference Planeまでの基準Camera距離は次の導出値になる。
 ```text
 referenceCameraDistance = Hp / (2 * tan(phiR / 2))
 ```
-
-`referenceFovY` は描画Cameraへ直接設定しない。
 
 ## Camera Y Motion
 
@@ -101,9 +97,7 @@ renderCameraFovY =
 0 < renderCameraFovY < pi
 ```
 
-設定値の前提条件違反は初期化時の設定例外として処理を終了する。resizeなどの実行時入力から一時的に不正な値が導出された場合は、Cameraの一部だけを更新せず、前回の正常なCamera状態全体を維持する。正常な状態が一度もなければ、そのPortalを描画しない。
-
-同じ異常を常時requestAnimationFrameで繰り返し出力せず、正常から異常へ変化した時に `console.error` を一度だけ出す。正常へ戻った後に再び異常になった場合は、改めて出力する。Three.jsへdegreeで渡す境界でも、変換結果が有限値かつ `0 < fov < 180` であることを確認する。
+設定値の違反は初期化時に例外とする。resizeなどの実行時入力が一時的に不正な場合は、前回の正常なCamera状態全体を維持し、正常な状態がなければ対象Portalを描画しない。エラーは状態遷移時だけ出力し、Three.jsへ渡すdegree値も `0 < fov < 180` であることを確認する。
 
 ## 基準投影高とCamera移動高
 
@@ -116,7 +110,7 @@ renderCameraFovY =
 Portalの寸法はCSSだけが所有する。Projection Profile、App共通基準投影高、Scene ConfigurationにはDOM寸法やCSS単位を保持しない。
 
 - CSSではpx、vw、media queryなどを自由に使える。
-- DOM Adapterは毎フレーム `getBoundingClientRect()` から実測矩形を取得する。
+- Runtimeは毎フレーム `getBoundingClientRect()` から実測矩形を取得する。
 - style文字列、`element.style`、`getComputedStyle()` の値を幾何入力として解析しない。
 - CSSの記述単位にかかわらず、Portal GeometryへはCSS pxの数値を渡す。
 - device pixelとCSS pxを区別し、DPRを幾何計算へ含めない。
