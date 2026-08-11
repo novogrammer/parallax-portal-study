@@ -18,7 +18,7 @@ export const projectionProfiles: readonly ProjectionProfile[] = [
 export const sceneConfigurations: readonly SceneConfiguration[] = [
   {
     sceneId: 'warm-boxes',
-    cameraTopY: 3,
+    cameraTopY: 7.5,
     cameraBottomY: 0,
   },
   {

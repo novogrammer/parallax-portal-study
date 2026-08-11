@@ -6,11 +6,12 @@ $px-to-vw-pc: calc(100vw / $design-width-pc);
 
 $bookend-height-sp: 670px;
 $bookend-height-pc: 670px;
+$showcase-height-sp: 670px;
+$introduction-to-showcase-ratio-sp: 2.5;
 $introduction-width-sp: 350px;
-$introduction-height-sp: 1600px;
+$introduction-height-sp: $showcase-height-sp * $introduction-to-showcase-ratio-sp;
 $introduction-width-pc: 768px;
 $introduction-height-pc: 1800px;
-$showcase-height-sp: 670px;
 $showcase-height-pc: 670px;
 
 @mixin mq-pc() {

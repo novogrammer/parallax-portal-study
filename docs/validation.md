@@ -76,7 +76,8 @@ WebGL基準実装では次の値と処理を採用する。これらはPortal Ge
 - responsive breakpointは `(min-width: 768px)`
 - Wide Profileは基準FOV `42deg`、Narrow Profileは基準FOV `50deg`
 - グローバルな基準投影高は `3m` とし、Sceneやviewport条件によって変更しない
-- 暖色Sceneと寒色SceneのScene Configurationは、現時点ではCamera Y `3m` から `0m` とする
+- 暖色SceneはCamera Y `7.5m` から `0m`、寒色Sceneは `3m` から `0m` とする
+- SPのIntroduction高はShowcase高の `2.5倍` とし、Camera移動高も同じ比率にする
 - wide / narrowは同じ基準投影高を異なるFOVで観測し、基準Camera距離はFOVから個別に導出する
 - 暖色SceneはBox群、寒色SceneはSphereとCylinder群で構成し、それぞれ近景、中景、遠景とLightを持つ
 - Camera Y範囲内の `X = 0m`、`Z = 0m` に、Y方向1m間隔の小さなCubeを検証用目印として置く

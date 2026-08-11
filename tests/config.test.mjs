@@ -24,7 +24,7 @@ test('projection height is global while each scene defines its own camera travel
       cameraBottomY,
     })),
     [
-      { sceneId: 'warm-boxes', cameraTopY: 3, cameraBottomY: 0 },
+      { sceneId: 'warm-boxes', cameraTopY: 7.5, cameraBottomY: 0 },
       { sceneId: 'cool-orbits', cameraTopY: 3, cameraBottomY: 0 },
     ],
   )
