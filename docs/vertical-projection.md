@@ -4,6 +4,8 @@
 
 Projection Profileで指定する基準FOV、DOMスクロールに連動するCamera Y、画面全体の `position: fixed` Canvasで使う描画CameraのFOVを分離して定義する。
 
+設定値の `referenceFovY` は基準投影領域とCamera距離を定義する設計用FOVであり、描画Cameraへ直接適用しない。実際の描画では、PortalのCSS実測高とCanvas高の比を反映した `renderCameraFovY` を導出し、固定Canvas上でCSSと3Dの垂直スケールが対応するように投影する。
+
 ## 記号
 
 | 記号 | 正式名称 | 意味 | 単位 |
