@@ -25,7 +25,6 @@ export interface SceneVariant {
   position: Vector3Tuple
   rotation: Vector3Tuple
   scale: Vector3Tuple
-  visibility: Readonly<Record<string, boolean>>
 }
 
 export interface PortalVariant {

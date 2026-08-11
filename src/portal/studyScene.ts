@@ -5,7 +5,6 @@ export interface StudySceneBundle {
   scene: THREE.Scene
   root: THREE.Group
   clearColor: THREE.ColorRepresentation
-  visibilityTargets: ReadonlyMap<string, THREE.Object3D>
   applyVariant: (variant: SceneVariant) => void
   dispose: () => void
 }
@@ -23,7 +22,7 @@ function addCommonLights(scene: THREE.Scene, accent: THREE.ColorRepresentation):
   scene.add(ambient, key, fill)
 }
 
-function createWarmScene(root: THREE.Group): Map<string, THREE.Object3D> {
+function createWarmScene(root: THREE.Group): void {
   const near = new THREE.Group()
   const middle = new THREE.Group()
   const far = new THREE.Group()
@@ -51,10 +50,9 @@ function createWarmScene(root: THREE.Group): Map<string, THREE.Object3D> {
   }
 
   root.add(near, middle, far)
-  return new Map([['near', near], ['middle', middle], ['far', far]])
 }
 
-function createCoolScene(root: THREE.Group): Map<string, THREE.Object3D> {
+function createCoolScene(root: THREE.Group): void {
   const near = new THREE.Group()
   const middle = new THREE.Group()
   const far = new THREE.Group()
@@ -81,7 +79,6 @@ function createCoolScene(root: THREE.Group): Map<string, THREE.Object3D> {
   }
 
   root.add(near, middle, far)
-  return new Map([['near', near], ['middle', middle], ['far', far]])
 }
 
 function disposeScene(scene: THREE.Scene): void {
@@ -109,16 +106,15 @@ export function createStudyScene(sceneId: string): StudySceneBundle {
   scene.add(root)
 
   let clearColor: THREE.ColorRepresentation
-  let visibilityTargets: ReadonlyMap<string, THREE.Object3D>
 
   if (sceneId === 'warm-boxes') {
     clearColor = 0x2c160d
     addCommonLights(scene, 0xffc857)
-    visibilityTargets = createWarmScene(root)
+    createWarmScene(root)
   } else if (sceneId === 'cool-orbits') {
     clearColor = 0x071c2c
     addCommonLights(scene, 0x73fbd3)
-    visibilityTargets = createCoolScene(root)
+    createCoolScene(root)
   } else {
     throw new Error(`Unknown study scene: ${sceneId}`)
   }
@@ -127,25 +123,10 @@ export function createStudyScene(sceneId: string): StudySceneBundle {
     scene,
     root,
     clearColor,
-    visibilityTargets,
     applyVariant: (variant) => {
       root.position.set(...variant.position)
       root.rotation.set(...variant.rotation)
       root.scale.set(...variant.scale)
-
-      for (const [name, object] of visibilityTargets) {
-        const visible = variant.visibility[name]
-        if (visible === undefined) {
-          throw new Error(`Scene variant "${variant.sceneVariantId}" is missing visibility for "${name}".`)
-        }
-        object.visible = visible
-      }
-
-      for (const name of Object.keys(variant.visibility)) {
-        if (!visibilityTargets.has(name)) {
-          throw new Error(`Scene variant "${variant.sceneVariantId}" has unknown visibility target "${name}".`)
-        }
-      }
     },
     dispose: () => disposeScene(scene),
   }

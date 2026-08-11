@@ -19,36 +19,30 @@ export const projectionProfiles: readonly ProjectionProfile[] = [
   },
 ]
 
-const visibleLayers = { near: true, middle: true, far: true }
-
 export const sceneVariants: readonly SceneVariant[] = [
   {
     sceneVariantId: 'warm-wide',
     position: [0, 0, 0],
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
-    visibility: visibleLayers,
   },
   {
     sceneVariantId: 'warm-narrow',
     position: [0.2, 0.1, -0.3],
     rotation: [0, 0.08, 0],
     scale: [0.82, 0.82, 0.82],
-    visibility: visibleLayers,
   },
   {
     sceneVariantId: 'cool-wide',
     position: [0, 0, 0],
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
-    visibility: visibleLayers,
   },
   {
     sceneVariantId: 'cool-narrow',
     position: [-0.2, 0.1, -0.4],
     rotation: [0, -0.08, 0],
     scale: [0.82, 0.82, 0.82],
-    visibility: visibleLayers,
   },
 ]
 

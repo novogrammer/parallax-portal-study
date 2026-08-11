@@ -1,7 +1,7 @@
 import { validateProjectionProfile } from './geometry.ts'
 import { PortalInstance } from './PortalInstance.ts'
 import { PortalRenderer } from './PortalRenderer.ts'
-import { listConfiguredVariants, validatePortalVariantReferences } from './responsive.ts'
+import { validatePortalVariantReferences } from './responsive.ts'
 import { createStudyScene } from './studyScene.ts'
 import type { PortalConfiguration, ProjectionProfile, SceneVariant } from './types.ts'
 
@@ -73,15 +73,6 @@ export class ParallaxPortalApp {
         const sceneBundle = createStudyScene(configuration.sceneId)
 
         try {
-          for (const portalVariant of listConfiguredVariants(configuration)) {
-            const sceneVariant = this.requireSceneVariant(
-              sceneVariants,
-              configuration.portalId,
-              portalVariant.sceneVariantId,
-            )
-            sceneBundle.applyVariant(sceneVariant)
-          }
-
           return new PortalInstance(
             configuration,
             element,
@@ -124,19 +115,5 @@ export class ParallaxPortalApp {
 
   private readonly handlePageHide = (): void => {
     this.dispose()
-  }
-
-  private requireSceneVariant(
-    sceneVariants: ReadonlyMap<string, SceneVariant>,
-    portalId: string,
-    sceneVariantId: string,
-  ): SceneVariant {
-    const sceneVariant = sceneVariants.get(sceneVariantId)
-
-    if (!sceneVariant) {
-      throw new Error(`Portal "${portalId}" references unknown scene variant "${sceneVariantId}".`)
-    }
-
-    return sceneVariant
   }
 }
