@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { projectionProfiles, sceneConfigurations } from '../src/portal/config.ts'
+import {
+  projectionProfiles,
+  referenceProjectionHeightMeters,
+  sceneConfigurations,
+} from '../src/portal/config.ts'
 
 test('wide and narrow profiles contain only their different FOVs', () => {
   const wide = projectionProfiles.find(({ profileId }) => profileId === 'wide')
@@ -11,17 +15,17 @@ test('wide and narrow profiles contain only their different FOVs', () => {
   assert.notEqual(narrow.referenceFovY, wide.referenceFovY)
 })
 
-test('each scene defines its own projection height and camera travel', () => {
+test('projection height is global while each scene defines its own camera travel', () => {
+  assert.equal(referenceProjectionHeightMeters, 3)
   assert.deepEqual(
-    sceneConfigurations.map(({ sceneId, referenceProjectionHeightMeters, cameraTopY, cameraBottomY }) => ({
+    sceneConfigurations.map(({ sceneId, cameraTopY, cameraBottomY }) => ({
       sceneId,
-      referenceProjectionHeightMeters,
       cameraTopY,
       cameraBottomY,
     })),
     [
-      { sceneId: 'warm-boxes', referenceProjectionHeightMeters: 3, cameraTopY: 3, cameraBottomY: 0 },
-      { sceneId: 'cool-orbits', referenceProjectionHeightMeters: 3, cameraTopY: 3, cameraBottomY: 0 },
+      { sceneId: 'warm-boxes', cameraTopY: 3, cameraBottomY: 0 },
+      { sceneId: 'cool-orbits', cameraTopY: 3, cameraBottomY: 0 },
     ],
   )
 })

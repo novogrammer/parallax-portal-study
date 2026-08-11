@@ -32,6 +32,7 @@ export class PortalInstance {
   private readonly element: HTMLElement
   private readonly profiles: ReadonlyMap<string, ProjectionProfile>
   private readonly sceneConfiguration: SceneConfiguration
+  private readonly referenceProjectionHeightMeters: number
   private readonly sceneBundle: StudySceneBundle
   private readonly camera: THREE.PerspectiveCamera
   private readonly responsiveController: ResponsiveVariantController
@@ -44,12 +45,14 @@ export class PortalInstance {
     element: HTMLElement,
     profiles: ReadonlyMap<string, ProjectionProfile>,
     sceneConfiguration: SceneConfiguration,
+    referenceProjectionHeightMeters: number,
     sceneBundle: StudySceneBundle,
   ) {
     this.configuration = configuration
     this.element = element
     this.profiles = profiles
     this.sceneConfiguration = sceneConfiguration
+    this.referenceProjectionHeightMeters = referenceProjectionHeightMeters
     this.sceneBundle = sceneBundle
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100)
     this.camera.position.set(0, 0, 1)
@@ -93,6 +96,7 @@ export class PortalInstance {
         viewport,
         this.activeProfile,
         this.sceneConfiguration,
+        this.referenceProjectionHeightMeters,
       )
 
       if (!geometry) {

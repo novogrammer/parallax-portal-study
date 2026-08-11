@@ -1,4 +1,8 @@
-import { validateProjectionProfile, validateSceneConfiguration } from './geometry.ts'
+import {
+  validateProjectionProfile,
+  validateReferenceProjectionHeight,
+  validateSceneConfiguration,
+} from './geometry.ts'
 import { PortalInstance } from './PortalInstance.ts'
 import { PortalRenderer } from './PortalRenderer.ts'
 import { validateProjectionProfileReferences } from './responsive.ts'
@@ -9,6 +13,7 @@ export interface ParallaxPortalAppOptions {
   canvas: HTMLCanvasElement
   configurations: readonly PortalConfiguration[]
   profiles: readonly ProjectionProfile[]
+  referenceProjectionHeightMeters: number
   sceneConfigurations: readonly SceneConfiguration[]
 }
 
@@ -52,6 +57,7 @@ export class ParallaxPortalApp {
     const portalIds = new Set<string>()
 
     profiles.forEach(validateProjectionProfile)
+    validateReferenceProjectionHeight(this.options.referenceProjectionHeightMeters)
     sceneConfigurations.forEach(validateSceneConfiguration)
 
     try {
@@ -87,6 +93,7 @@ export class ParallaxPortalApp {
             element,
             profiles,
             sceneConfiguration,
+            this.options.referenceProjectionHeightMeters,
             sceneBundle,
           )
         } catch (error) {

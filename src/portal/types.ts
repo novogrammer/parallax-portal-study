@@ -17,7 +17,6 @@ export interface ProjectionProfile {
 
 export interface SceneConfiguration {
   sceneId: string
-  referenceProjectionHeightMeters: number
   cameraTopY: number
   cameraBottomY: number
 }

@@ -2,6 +2,8 @@ import type { PortalConfiguration, ProjectionProfile, SceneConfiguration } from 
 
 const degreesToRadians = (degrees: number): number => degrees * Math.PI / 180
 
+export const referenceProjectionHeightMeters = 3
+
 export const projectionProfiles: readonly ProjectionProfile[] = [
   {
     profileId: 'wide',
@@ -16,13 +18,11 @@ export const projectionProfiles: readonly ProjectionProfile[] = [
 export const sceneConfigurations: readonly SceneConfiguration[] = [
   {
     sceneId: 'warm-boxes',
-    referenceProjectionHeightMeters: 3,
     cameraTopY: 3,
     cameraBottomY: 0,
   },
   {
     sceneId: 'cool-orbits',
-    referenceProjectionHeightMeters: 3,
     cameraTopY: 3,
     cameraBottomY: 0,
   },

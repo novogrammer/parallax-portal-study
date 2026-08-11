@@ -25,6 +25,8 @@ Portal Geometry <--- Projection Profile
         ^
         |
         +---------- Scene Configuration
+        |
+        +---------- referenceProjectionHeightMeters
     |
     | Camera position, projection, scissor rect
     v
@@ -80,12 +82,15 @@ Sceneを垂直方向にどの範囲で観測するかを定義する。Cameraの
 ```text
 SceneConfiguration
 ├── sceneId
-├── referenceProjectionHeightMeters
 ├── cameraTopY
 └── cameraBottomY
 ```
 
-`referenceProjectionHeightMeters` はReference Plane上で一度に見せる基準高、`cameraTopY` と `cameraBottomY` はスクロールによって観測するScene内の垂直範囲を表す。縦長のSceneでは、一度に見せる基準高を維持したままCamera Yの移動範囲を広げられる。
+`cameraTopY` と `cameraBottomY` はスクロールによって観測するScene内の垂直範囲を表す。縦長のSceneではCamera Yの移動範囲を広げる。
+
+### 共通基準投影高
+
+`referenceProjectionHeightMeters` はReference Plane上で一度に見せる基準高であり、Sceneやviewport条件によって変えないグローバルな設定値とする。Projection Profileの `referenceFovY` と組み合わせて、viewport条件ごとの基準Camera距離を導出する。
 
 ### Projection Profile
 
@@ -176,7 +181,7 @@ Camera Yが移動してもCameraの向きは負のZ方向に固定する。原�
 1. viewport寸法とfull Portal rectを取得する。
 2. Portalとviewportの交差矩形を求める。
 3. 交差領域がなければ描画対象から外す。
-4. Projection Profile、Scene Configuration、full Portal rectからCamera Y、Camera距離、Render Camera FOV Yを導出する。
+4. Projection Profile、共通基準投影高、Scene Configuration、full Portal rectからCamera Y、Camera距離、Render Camera FOV Yを導出する。
 5. Motion Policyが実装されている段階では追加演出を適用する。第1段階では何も適用しない。
 6. Canvas全体のWebGL viewportを維持したまま、交差矩形をscissorへ設定する。
 7. scissor内のcolor bufferとdepth bufferをclearしてSceneを描画する。
