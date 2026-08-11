@@ -74,8 +74,9 @@ WebGL基準実装では次の値と処理を採用する。これらはPortal Ge
 - Cameraの `near` は `0.1`、`far` は `100`
 - DPR上限は `2`
 - responsive breakpointは `(min-width: 768px)`
-- Wide Profileは基準FOV `42deg`、基準投影高 `3m`、Camera Y `3m` から `0m`
-- Narrow Profileは基準FOV `50deg`、基準投影高 `4m`、Camera Y `3.5m` から `-0.5m`
+- Wide Profileは基準FOV `42deg`、Narrow Profileは基準FOV `50deg`
+- 両Profileで基準投影高 `3m`、Camera Y `3m` から `0m` を共有する
+- wide / narrowは同じ高さのScene範囲を異なるFOVで観測し、基準Camera距離はFOVから個別に導出する
 - 暖色SceneはBox群、寒色SceneはSphereとCylinder群で構成し、それぞれ近景、中景、遠景とLightを持つ
 - Scene rootはpositionとrotationを0、scaleを1に維持し、個々のオブジェクト配置はScene生成コードで定義する
 - WebGL scissorは可視領域を欠落させないよう、左と下を `floor`、右と上を `ceil` する

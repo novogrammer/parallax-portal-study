@@ -13,9 +13,9 @@ export const projectionProfiles: readonly ProjectionProfile[] = [
   {
     profileId: 'narrow',
     referenceFovY: degreesToRadians(50),
-    referenceProjectionHeightMeters: 4,
-    cameraTopY: 3.5,
-    cameraBottomY: -0.5,
+    referenceProjectionHeightMeters: 3,
+    cameraTopY: 3,
+    cameraBottomY: 0,
   },
 ]
 
