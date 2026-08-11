@@ -121,7 +121,6 @@ Scene VariantはMedia Queryによって選択し、Portalごとに所有するSc
 - DOM矩形とviewportの交差判定
 - スクロール進行値とCamera Yの計算
 - Reference FOVからRender Camera FOVへの変換
-- `position: fixed` Canvasのaspectから水平FOVと可視幅を導出
 - 入力値の検証
 
 DOM型、Three.js型、描画ループには依存しない純粋な計算とする。
@@ -169,7 +168,7 @@ Camera Yが移動してもCameraの向きは負のZ方向に固定する。原�
 1. viewport寸法とfull Portal rectを取得する。
 2. Portalとviewportの交差矩形を求める。
 3. 交差領域がなければ描画対象から外す。
-4. Projection Profileとfull Portal rectからCamera Y、Camera距離、Render Camera FOV、可視幅を導出する。
+4. Projection Profileとfull Portal rectからCamera Y、Camera距離、Render Camera FOV Yを導出する。
 5. Motion Policyが実装されている段階では追加演出を適用する。第1段階では何も適用しない。
 6. Canvas全体のWebGL viewportを維持したまま、交差矩形をscissorへ設定する。
 7. scissor内のcolor bufferとdepth bufferをclearしてSceneを描画する。

@@ -63,7 +63,7 @@ WebGLRendererを使い、垂直投影、スクロール連動Camera、複数Port
 #### `ParallaxPortalApp`
 
 - 設定、DOM、Scene生成、Runtimeを組み立てる。
-- 非同期初期化、開始、破棄の入口を提供する。
+- 初期化、開始、破棄の入口を提供する。
 - 初期化失敗時に不完全なRuntimeを開始しない。
 - Media Queryの現在の一致状態にかかわらず、全Variantの参照を初期化時に検証する。
 
@@ -98,7 +98,6 @@ WebGLRendererを使い、垂直投影、スクロール連動Camera、複数Port
 - Reference PlaneまでのCamera距離
 - Camera Y
 - Render Camera FOV Y
-- CanvasとPortalの可視寸法
 - responsive Variantの選択
 - 設定値と実行時入力の検証
 

@@ -2,7 +2,7 @@ import './style.scss'
 import { ParallaxPortalApp } from './portal/ParallaxPortalApp.ts'
 import { portalConfigurations, projectionProfiles, sceneVariants } from './portal/config.ts'
 
-async function mainAsync(): Promise<void> {
+function main(): void {
   const canvas = document.querySelector<HTMLCanvasElement>('.p-home-canvas')
 
   if (!canvas) {
@@ -16,11 +16,13 @@ async function mainAsync(): Promise<void> {
     sceneVariants,
   })
 
-  await app.initialize()
+  app.initialize()
   app.start()
 }
 
-mainAsync().catch((error: unknown) => {
+try {
+  main()
+} catch (error: unknown) {
   document.documentElement.classList.add('portal-unavailable')
   console.error(error)
-})
+}

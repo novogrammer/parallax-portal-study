@@ -16,7 +16,6 @@ export class PortalRenderer {
       canvas,
       alpha: true,
       antialias: true,
-      powerPreference: 'high-performance',
     })
     this.renderer.autoClear = false
     this.renderer.setClearColor(0x000000, 0)

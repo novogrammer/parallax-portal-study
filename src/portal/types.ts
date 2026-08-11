@@ -59,9 +59,4 @@ export interface PortalGeometryResult {
   referenceCameraDistance: number
   cameraY: number
   renderCameraFovY: number
-  renderCameraFovX: number
-  canvasVisibleHeightMeters: number
-  canvasVisibleWidthMeters: number
-  metersPerCssPixel: number
-  portalVisibleWidthMeters: number
 }

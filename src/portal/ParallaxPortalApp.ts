@@ -38,7 +38,7 @@ export class ParallaxPortalApp {
     this.options = options
   }
 
-  async initialize(): Promise<void> {
+  initialize(): void {
     if (this.isInitialized) {
       return
     }

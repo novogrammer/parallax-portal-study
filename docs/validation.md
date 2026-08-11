@@ -26,8 +26,6 @@
 | progressが0未満または1超 | clampせず、同じ式でCamera Yが線形外挿される |
 | `cameraTopY == cameraBottomY` | 設定例外を投げて処理を終了する |
 | Portalがないフレーム | requestAnimationFrame自体は継続する |
-| Canvasのaspectが変化 | Render Camera FOV Xと可視幅が再導出される |
-| Portal幅が変化 | 同じm/CSS pxでPortal可視幅が変化する |
 | Portalが左右に寄る | Camera Xは固定され、Canvas上の対応領域がscissorされる |
 | 複数のMedia Queryが一致 | `rules` の上から最初に一致したVariantだけが選ばれる |
 | どのMedia Queryにも一致しない | 必須の `otherwise` Variantが選ばれる |
@@ -61,8 +59,6 @@
 - Scene IDやProfile IDによる条件分岐をPortal Geometryへ埋め込まない。
 - Portalの描画順が各PortalのCamera計算へ影響しない。
 - 表示対象Portalの有無にかかわらずrequestAnimationFrameを継続する。
-- Render Camera FOV Yと画面全体の `position: fixed` Canvasのaspectから水平FOVを一意に導出できる。
-- CanvasとPortalの可視幅を共通のm/CSS pxスケールから導出できる。
 - Camera XをPortal位置またはスクロールによって変更しない。
 - Media Queryの重複や不一致にかかわらず、優先順位と `otherwise` により常に1つのVariantを選択できる。
 - ブレークポイントとVariantの対応を設定で変更でき、Portal固有の条件分岐を共通選択処理へ追加する必要がない。

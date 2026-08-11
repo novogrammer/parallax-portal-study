@@ -3,7 +3,6 @@ import type { SceneVariant } from './types.ts'
 
 export interface StudySceneBundle {
   scene: THREE.Scene
-  root: THREE.Group
   clearColor: THREE.ColorRepresentation
   applyVariant: (variant: SceneVariant) => void
   dispose: () => void
@@ -121,7 +120,6 @@ export function createStudyScene(sceneId: string): StudySceneBundle {
 
   return {
     scene,
-    root,
     clearColor,
     applyVariant: (variant) => {
       root.position.set(...variant.position)

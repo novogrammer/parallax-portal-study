@@ -134,22 +134,11 @@ export function calculatePortalGeometry(
   const referenceCameraDistance = calculateReferenceCameraDistance(profile)
   const cameraY = calculateCameraY(profile, centerProgress)
   const renderCameraFovY = calculateRenderCameraFovY(profile, viewport.height, portal.height)
-  const canvasAspect = viewport.width / viewport.height
-  const renderCameraFovX = 2 * Math.atan(Math.tan(renderCameraFovY / 2) * canvasAspect)
-  const canvasVisibleHeightMeters = 2 * referenceCameraDistance * Math.tan(renderCameraFovY / 2)
-  const canvasVisibleWidthMeters = canvasVisibleHeightMeters * canvasAspect
-  const metersPerCssPixel = canvasVisibleHeightMeters / viewport.height
-  const portalVisibleWidthMeters = portal.width * metersPerCssPixel
 
   const derivedValues = [
     referenceCameraDistance,
     cameraY,
     renderCameraFovY,
-    renderCameraFovX,
-    canvasVisibleHeightMeters,
-    canvasVisibleWidthMeters,
-    metersPerCssPixel,
-    portalVisibleWidthMeters,
   ]
 
   if (!derivedValues.every(Number.isFinite)) {
@@ -162,10 +151,5 @@ export function calculatePortalGeometry(
     referenceCameraDistance,
     cameraY,
     renderCameraFovY,
-    renderCameraFovX,
-    canvasVisibleHeightMeters,
-    canvasVisibleWidthMeters,
-    metersPerCssPixel,
-    portalVisibleWidthMeters,
   }
 }
