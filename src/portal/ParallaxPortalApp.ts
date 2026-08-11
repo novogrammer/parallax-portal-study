@@ -1,14 +1,15 @@
-import { validateProjectionProfile } from './geometry.ts'
+import { validateProjectionProfile, validateSceneConfiguration } from './geometry.ts'
 import { PortalInstance } from './PortalInstance.ts'
 import { PortalRenderer } from './PortalRenderer.ts'
 import { validateProjectionProfileReferences } from './responsive.ts'
 import { createStudyScene } from './studyScene.ts'
-import type { PortalConfiguration, ProjectionProfile } from './types.ts'
+import type { PortalConfiguration, ProjectionProfile, SceneConfiguration } from './types.ts'
 
 export interface ParallaxPortalAppOptions {
   canvas: HTMLCanvasElement
   configurations: readonly PortalConfiguration[]
   profiles: readonly ProjectionProfile[]
+  sceneConfigurations: readonly SceneConfiguration[]
 }
 
 function createUniqueMap<T>(items: readonly T[], getId: (item: T) => string, label: string): Map<string, T> {
@@ -43,9 +44,15 @@ export class ParallaxPortalApp {
     }
 
     const profiles = createUniqueMap(this.options.profiles, ({ profileId }) => profileId, 'profileId')
+    const sceneConfigurations = createUniqueMap(
+      this.options.sceneConfigurations,
+      ({ sceneId }) => sceneId,
+      'sceneId',
+    )
     const portalIds = new Set<string>()
 
     profiles.forEach(validateProjectionProfile)
+    sceneConfigurations.forEach(validateSceneConfiguration)
 
     try {
       this.portals = this.options.configurations.map((configuration) => {
@@ -55,6 +62,14 @@ export class ParallaxPortalApp {
         portalIds.add(configuration.portalId)
 
         validateProjectionProfileReferences(configuration, profiles)
+
+        const sceneConfiguration = sceneConfigurations.get(configuration.sceneId)
+
+        if (!sceneConfiguration) {
+          throw new Error(
+            `Portal "${configuration.portalId}" references unknown scene "${configuration.sceneId}".`,
+          )
+        }
 
         const element = document.querySelector<HTMLElement>(
           `[data-portal-id="${CSS.escape(configuration.portalId)}"]`,
@@ -71,6 +86,7 @@ export class ParallaxPortalApp {
             configuration,
             element,
             profiles,
+            sceneConfiguration,
             sceneBundle,
           )
         } catch (error) {

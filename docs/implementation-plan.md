@@ -33,7 +33,8 @@ WebGLRendererを使い、垂直投影、スクロール連動Camera、複数Port
 - ページ全体で共有する1枚の透明な `position: fixed` Canvas
 - Three.jsのWebGLRenderer
 - 2つのPortal
-- Portalごとに独立したScene、PerspectiveCamera、Projection Profile
+- Portalごとに独立したScene、PerspectiveCamera、Scene Configuration
+- PCとSPを想定した共有Projection Profile
 - 近景、中景、遠景の視差を確認できるプリミティブGeometryによる検証Scene
 - full Portal rectを使ったCamera Y、Camera距離、Render Camera FOVの導出
 - Portalとviewportの交差矩形を使ったscissor描画
@@ -79,6 +80,7 @@ WebGLRendererを使い、垂直投影、スクロール連動Camera、複数Port
 
 - 1つのPortalに対応するDOM要素、Scene、Cameraを所有する。
 - 現在選択されているProjection Profileを保持する。
+- Scene固有の基準投影高とCamera Y範囲を保持する。
 - Portal固有のThree.jsリソースを破棄する。
 
 #### `ResponsiveVariantController`

@@ -13,6 +13,10 @@ export interface ViewportSize {
 export interface ProjectionProfile {
   profileId: string
   referenceFovY: number
+}
+
+export interface SceneConfiguration {
+  sceneId: string
   referenceProjectionHeightMeters: number
   cameraTopY: number
   cameraBottomY: number

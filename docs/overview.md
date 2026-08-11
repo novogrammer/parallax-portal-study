@@ -22,6 +22,9 @@ Page / DOM
     | full Portal rect
     v
 Portal Geometry <--- Projection Profile
+        ^
+        |
+        +---------- Scene Configuration
     |
     | Camera position, projection, scissor rect
     v
@@ -32,7 +35,7 @@ Renderer Adapter ---> position: fixed Canvas ---> Scene
 - Portalとviewportの交差矩形はscissorだけに使う。
 - WebGL viewportは常にCanvas全体とし、Portalごとに変更しない。
 - 部分表示時もCameraと構図を切り替えず、描画範囲だけを狭める。
-- 複数Portalはそれぞれ独立したScene、Camera、Projection Profileを持てる。
+- 複数Portalはそれぞれ独立したScene、Camera、Scene Configurationを持ち、閲覧条件に応じたProjection Profileを選べる。
 - SceneインスタンスはPortalごとに生成し、同じ `sceneId` を使うPortal間でも共有しない。
 - Camera Xは初期値に固定し、PortalのX位置やスクロールでは動かさない。
 - 左右に寄ったPortalは、Canvas全体へ投影されたSceneの対応領域をそのままscissorする。
@@ -68,19 +71,30 @@ vertical FOVの上側は3D空間の正のY方向、下側は負のY方向に対�
 
 ### Scene
 
-TypeScriptコードから生成するThree.jsの3Dコンテンツ。長さはm、座標方向は共通定義に従い、オブジェクトを実際の3D位置へ配置する。Scene rootはpositionとrotationを0、scaleを1に維持し、Geometryへ指定した1 unitをWorld上の1mとして扱う。個々のオブジェクトの位置と回転はScene生成コードで明示する。表示範囲はCameraのfrustumとPortalのscissorによって決まり、Sceneはsafe area、推奨深度、構図を規定しない。
+TypeScriptコードから生成するThree.jsの3Dコンテンツ。長さはm、座標方向は共通定義に従い、オブジェクトを実際の3D位置へ配置する。Scene rootはpositionとrotationを0、scaleを1に維持し、Geometryへ指定した1 unitをWorld上の1mとして扱う。個々のオブジェクトの位置と回転はScene生成コードで明示する。
+
+### Scene Configuration
+
+Sceneを垂直方向にどの範囲で観測するかを定義する。Cameraの具体的な状態ではなく、Sceneの基準的な見せ方としてScene IDに結び付ける。
+
+```text
+SceneConfiguration
+├── sceneId
+├── referenceProjectionHeightMeters
+├── cameraTopY
+└── cameraBottomY
+```
+
+`referenceProjectionHeightMeters` はReference Plane上で一度に見せる基準高、`cameraTopY` と `cameraBottomY` はスクロールによって観測するScene内の垂直範囲を表す。縦長のSceneでは、一度に見せる基準高を維持したままCamera Yの移動範囲を広げられる。
 
 ### Projection Profile
 
-Sceneの見せ方を定義する。同じSceneを異なるPortalや構図で再利用できるよう、Scene本体から分離する。
+PCやスマートフォンなど、観測者の閲覧条件に応じた基準FOVを定義する。
 
 ```text
 ProjectionProfile
 ├── profileId
-├── referenceFovY
-├── referenceProjectionHeightMeters
-├── cameraTopY
-└── cameraBottomY
+└── referenceFovY
 ```
 
 ### Portal Configuration
@@ -162,7 +176,7 @@ Camera Yが移動してもCameraの向きは負のZ方向に固定する。原�
 1. viewport寸法とfull Portal rectを取得する。
 2. Portalとviewportの交差矩形を求める。
 3. 交差領域がなければ描画対象から外す。
-4. Projection Profileとfull Portal rectからCamera Y、Camera距離、Render Camera FOV Yを導出する。
+4. Projection Profile、Scene Configuration、full Portal rectからCamera Y、Camera距離、Render Camera FOV Yを導出する。
 5. Motion Policyが実装されている段階では追加演出を適用する。第1段階では何も適用しない。
 6. Canvas全体のWebGL viewportを維持したまま、交差矩形をscissorへ設定する。
 7. scissor内のcolor bufferとdepth bufferをclearしてSceneを描画する。

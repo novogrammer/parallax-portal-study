@@ -2,7 +2,7 @@
 
 ## 目的
 
-Projection Profileで指定する基準FOV、DOMスクロールに連動するCamera Y、画面全体の `position: fixed` Canvasで使う描画CameraのFOVを分離して定義する。
+Projection Profileで指定する基準FOV、Scene Configurationで指定する基準投影高とCamera Y範囲、画面全体の `position: fixed` Canvasで使う描画CameraのFOVを分離して定義する。
 
 設定値の `referenceFovY` は基準投影領域とCamera距離を定義する設計用FOVであり、描画Cameraへ直接適用しない。実際の描画では、PortalのCSS実測高とCanvas高の比を反映した `renderCameraFovY` を導出し、固定Canvas上でCSSと3Dの垂直スケールが対応するように投影する。
 
@@ -33,7 +33,7 @@ Projection Profileで指定する基準FOV、DOMスクロールに連動するCa
 
 ## Reference Projection
 
-`referenceFovY` と `referenceProjectionHeightMeters` は、Sceneの見せ方を決める独立した入力値である。FOVを1m当たりの換算値として扱わない。
+Projection Profileの `referenceFovY` とScene Configurationの `referenceProjectionHeightMeters` は、基準Camera距離を決める独立した入力値である。FOVを1m当たりの換算値として扱わない。
 
 Reference Planeまでの基準Camera距離は次の導出値になる。
 
@@ -55,7 +55,7 @@ centerProgress = (Vh / 2 - y) / h
 - Portal下端がviewport中央に来たとき `1`
 - 範囲外では0未満または1超の値をそのまま使う
 
-Camera YはProfileの上下端を補間して求める。
+Camera YはScene Configurationの上下端を補間して求める。
 
 ```text
 cameraY = lerp(Ty, By, centerProgress)
@@ -91,7 +91,7 @@ renderCameraFovY =
   )
 ```
 
-`renderCameraFovY` は導出値であり、Projection Profileには保存しない。DOM窓の現在Y位置はCamera Yにだけ使い、FOV変換には含めない。
+`renderCameraFovY` は導出値であり、Projection ProfileやScene Configurationには保存しない。DOM窓の現在Y位置はCamera Yにだけ使い、FOV変換には含めない。
 
 導出した `renderCameraFovY` は有限値かつ次の範囲でなければならない。
 
@@ -111,7 +111,7 @@ renderCameraFovY =
 
 ## DOM寸法と実行時矩形
 
-Portalの寸法はCSSだけが所有する。Projection ProfileにはDOM寸法やCSS単位を保持しない。
+Portalの寸法はCSSだけが所有する。Projection ProfileとScene ConfigurationにはDOM寸法やCSS単位を保持しない。
 
 - CSSではpx、vw、media queryなどを自由に使える。
 - DOM Adapterは毎フレーム `getBoundingClientRect()` から実測矩形を取得する。

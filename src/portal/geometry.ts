@@ -2,6 +2,7 @@ import type {
   PortalGeometryResult,
   ProjectionProfile,
   Rect,
+  SceneConfiguration,
   ViewportSize,
   WebGlScissorRect,
 } from './types.ts'
@@ -15,17 +16,19 @@ function assertFinitePositive(value: number, name: string): void {
 }
 
 export function validateProjectionProfile(profile: ProjectionProfile): void {
-  assertFinitePositive(profile.referenceProjectionHeightMeters, 'referenceProjectionHeightMeters')
-
   if (!Number.isFinite(profile.referenceFovY) || profile.referenceFovY <= 0 || profile.referenceFovY >= PI) {
     throw new RangeError('referenceFovY must be finite and between 0 and PI radians.')
   }
+}
 
-  if (!Number.isFinite(profile.cameraTopY) || !Number.isFinite(profile.cameraBottomY)) {
+export function validateSceneConfiguration(scene: SceneConfiguration): void {
+  assertFinitePositive(scene.referenceProjectionHeightMeters, 'referenceProjectionHeightMeters')
+
+  if (!Number.isFinite(scene.cameraTopY) || !Number.isFinite(scene.cameraBottomY)) {
     throw new RangeError('cameraTopY and cameraBottomY must be finite.')
   }
 
-  if (profile.cameraTopY === profile.cameraBottomY) {
+  if (scene.cameraTopY === scene.cameraBottomY) {
     throw new RangeError('cameraTopY and cameraBottomY must not be equal.')
   }
 }
@@ -65,35 +68,41 @@ export function calculateCenterProgress(viewportHeight: number, portalTop: numbe
   return (viewportHeight / 2 - portalTop) / portalHeight
 }
 
-export function calculateReferenceCameraDistance(profile: ProjectionProfile): number {
+export function calculateReferenceCameraDistance(
+  profile: ProjectionProfile,
+  scene: SceneConfiguration,
+): number {
   validateProjectionProfile(profile)
-  return profile.referenceProjectionHeightMeters / (2 * Math.tan(profile.referenceFovY / 2))
+  validateSceneConfiguration(scene)
+  return scene.referenceProjectionHeightMeters / (2 * Math.tan(profile.referenceFovY / 2))
 }
 
-export function calculateCameraY(profile: ProjectionProfile, centerProgress: number): number {
-  validateProjectionProfile(profile)
+export function calculateCameraY(scene: SceneConfiguration, centerProgress: number): number {
+  validateSceneConfiguration(scene)
 
   if (!Number.isFinite(centerProgress)) {
     throw new RangeError('centerProgress must be finite.')
   }
 
-  return profile.cameraTopY + (profile.cameraBottomY - profile.cameraTopY) * centerProgress
+  return scene.cameraTopY + (scene.cameraBottomY - scene.cameraTopY) * centerProgress
 }
 
 export function calculateRenderCameraFovY(
   profile: ProjectionProfile,
+  scene: SceneConfiguration,
   canvasHeight: number,
   portalHeight: number,
 ): number {
   validateProjectionProfile(profile)
+  validateSceneConfiguration(scene)
   assertFinitePositive(canvasHeight, 'canvasHeight')
   assertFinitePositive(portalHeight, 'portalHeight')
 
-  const cameraTravelHeightMeters = Math.abs(profile.cameraTopY - profile.cameraBottomY)
+  const cameraTravelHeightMeters = Math.abs(scene.cameraTopY - scene.cameraBottomY)
   const fov = 2 * Math.atan(
     Math.tan(profile.referenceFovY / 2)
       * (canvasHeight / portalHeight)
-      * (cameraTravelHeightMeters / profile.referenceProjectionHeightMeters),
+      * (cameraTravelHeightMeters / scene.referenceProjectionHeightMeters),
   )
 
   if (!Number.isFinite(fov) || fov <= 0 || fov >= PI) {
@@ -123,6 +132,7 @@ export function calculatePortalGeometry(
   portal: Rect,
   viewport: ViewportSize,
   profile: ProjectionProfile,
+  scene: SceneConfiguration,
 ): PortalGeometryResult | null {
   const intersection = calculatePortalIntersection(portal, viewport)
 
@@ -131,9 +141,9 @@ export function calculatePortalGeometry(
   }
 
   const centerProgress = calculateCenterProgress(viewport.height, portal.y, portal.height)
-  const referenceCameraDistance = calculateReferenceCameraDistance(profile)
-  const cameraY = calculateCameraY(profile, centerProgress)
-  const renderCameraFovY = calculateRenderCameraFovY(profile, viewport.height, portal.height)
+  const referenceCameraDistance = calculateReferenceCameraDistance(profile, scene)
+  const cameraY = calculateCameraY(scene, centerProgress)
+  const renderCameraFovY = calculateRenderCameraFovY(profile, scene, viewport.height, portal.height)
 
   const derivedValues = [
     referenceCameraDistance,

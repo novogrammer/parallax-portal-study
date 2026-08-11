@@ -9,11 +9,16 @@ import {
   calculateRenderCameraFovY,
   calculateWebGlScissor,
   validateProjectionProfile,
+  validateSceneConfiguration,
 } from '../src/portal/geometry.ts'
 
 const profile = {
   profileId: 'test',
   referenceFovY: 42 * Math.PI / 180,
+}
+
+const scene = {
+  sceneId: 'test-scene',
   referenceProjectionHeightMeters: 3,
   cameraTopY: 3,
   cameraBottomY: 0,
@@ -27,24 +32,24 @@ test('center progress reaches both endpoints and remains unclamped', () => {
 })
 
 test('camera Y interpolates and extrapolates without clamping', () => {
-  assert.equal(calculateCameraY(profile, 0), 3)
-  assert.equal(calculateCameraY(profile, 1), 0)
-  assert.equal(calculateCameraY(profile, -0.5), 4.5)
-  assert.equal(calculateCameraY(profile, 1.5), -1.5)
+  assert.equal(calculateCameraY(scene, 0), 3)
+  assert.equal(calculateCameraY(scene, 1), 0)
+  assert.equal(calculateCameraY(scene, -0.5), 4.5)
+  assert.equal(calculateCameraY(scene, 1.5), -1.5)
 })
 
 test('reference camera distance follows the projection equation', () => {
   const expected = 3 / (2 * Math.tan(profile.referenceFovY / 2))
-  assert.ok(Math.abs(calculateReferenceCameraDistance(profile) - expected) < 1e-12)
+  assert.ok(Math.abs(calculateReferenceCameraDistance(profile, scene) - expected) < 1e-12)
 })
 
 test('render FOV handles equal and unequal travel/reference heights', () => {
-  const equalHeightFov = calculateRenderCameraFovY(profile, 800, 400)
+  const equalHeightFov = calculateRenderCameraFovY(profile, scene, 800, 400)
   const expectedEqual = 2 * Math.atan(Math.tan(profile.referenceFovY / 2) * 2)
   assert.ok(Math.abs(equalHeightFov - expectedEqual) < 1e-12)
 
-  const unequalProfile = { ...profile, cameraTopY: 4.5, cameraBottomY: 0 }
-  const unequalHeightFov = calculateRenderCameraFovY(unequalProfile, 800, 400)
+  const unequalScene = { ...scene, cameraTopY: 4.5, cameraBottomY: 0 }
+  const unequalHeightFov = calculateRenderCameraFovY(profile, unequalScene, 800, 400)
   const expectedUnequal = 2 * Math.atan(Math.tan(profile.referenceFovY / 2) * 2 * 1.5)
   assert.ok(Math.abs(unequalHeightFov - expectedUnequal) < 1e-12)
 })
@@ -77,6 +82,7 @@ test('portal geometry keeps full portal height when only part is visible', () =>
     { x: 0, y: -500, width: 1200, height: 1200 },
     { width: 1200, height: 800 },
     profile,
+    scene,
   )
 
   assert.ok(geometry)
@@ -87,8 +93,8 @@ test('portal geometry keeps full portal height when only part is visible', () =>
 
 test('invalid projection inputs throw configuration errors', () => {
   assert.throws(() => validateProjectionProfile({ ...profile, referenceFovY: 0 }), RangeError)
-  assert.throws(() => validateProjectionProfile({ ...profile, referenceProjectionHeightMeters: 0 }), RangeError)
-  assert.throws(() => validateProjectionProfile({ ...profile, cameraBottomY: 3 }), RangeError)
-  assert.throws(() => calculateRenderCameraFovY(profile, 0, 100), RangeError)
-  assert.throws(() => calculateRenderCameraFovY(profile, 100, 0), RangeError)
+  assert.throws(() => validateSceneConfiguration({ ...scene, referenceProjectionHeightMeters: 0 }), RangeError)
+  assert.throws(() => validateSceneConfiguration({ ...scene, cameraBottomY: 3 }), RangeError)
+  assert.throws(() => calculateRenderCameraFovY(profile, scene, 0, 100), RangeError)
+  assert.throws(() => calculateRenderCameraFovY(profile, scene, 100, 0), RangeError)
 })

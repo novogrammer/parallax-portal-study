@@ -1,4 +1,4 @@
-import type { PortalConfiguration, ProjectionProfile } from './types.ts'
+import type { PortalConfiguration, ProjectionProfile, SceneConfiguration } from './types.ts'
 
 const degreesToRadians = (degrees: number): number => degrees * Math.PI / 180
 
@@ -6,13 +6,22 @@ export const projectionProfiles: readonly ProjectionProfile[] = [
   {
     profileId: 'wide',
     referenceFovY: degreesToRadians(42),
+  },
+  {
+    profileId: 'narrow',
+    referenceFovY: degreesToRadians(50),
+  },
+]
+
+export const sceneConfigurations: readonly SceneConfiguration[] = [
+  {
+    sceneId: 'warm-boxes',
     referenceProjectionHeightMeters: 3,
     cameraTopY: 3,
     cameraBottomY: 0,
   },
   {
-    profileId: 'narrow',
-    referenceFovY: degreesToRadians(50),
+    sceneId: 'cool-orbits',
     referenceProjectionHeightMeters: 3,
     cameraTopY: 3,
     cameraBottomY: 0,

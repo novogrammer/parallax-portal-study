@@ -7,6 +7,7 @@ import type {
   ProjectionProfile,
   Rect,
   ResponsiveVariant,
+  SceneConfiguration,
   ViewportSize,
   WebGlScissorRect,
 } from './types.ts'
@@ -30,6 +31,7 @@ export class PortalInstance {
   private readonly configuration: PortalConfiguration
   private readonly element: HTMLElement
   private readonly profiles: ReadonlyMap<string, ProjectionProfile>
+  private readonly sceneConfiguration: SceneConfiguration
   private readonly sceneBundle: StudySceneBundle
   private readonly camera: THREE.PerspectiveCamera
   private readonly responsiveController: ResponsiveVariantController
@@ -41,11 +43,13 @@ export class PortalInstance {
     configuration: PortalConfiguration,
     element: HTMLElement,
     profiles: ReadonlyMap<string, ProjectionProfile>,
+    sceneConfiguration: SceneConfiguration,
     sceneBundle: StudySceneBundle,
   ) {
     this.configuration = configuration
     this.element = element
     this.profiles = profiles
+    this.sceneConfiguration = sceneConfiguration
     this.sceneBundle = sceneBundle
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100)
     this.camera.position.set(0, 0, 1)
@@ -84,7 +88,12 @@ export class PortalInstance {
     }
 
     try {
-      const geometry = calculatePortalGeometry(portalRect, viewport, this.activeProfile)
+      const geometry = calculatePortalGeometry(
+        portalRect,
+        viewport,
+        this.activeProfile,
+        this.sceneConfiguration,
+      )
 
       if (!geometry) {
         return null
