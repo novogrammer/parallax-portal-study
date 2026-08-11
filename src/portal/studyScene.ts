@@ -124,7 +124,6 @@ export function createStudyScene(sceneId: string): StudySceneBundle {
     applyVariant: (variant) => {
       root.position.set(...variant.position)
       root.rotation.set(...variant.rotation)
-      root.scale.set(...variant.scale)
     },
     dispose: () => disposeScene(scene),
   }

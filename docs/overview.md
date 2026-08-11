@@ -68,7 +68,7 @@ vertical FOVの上側は3D空間の正のY方向、下側は負のY方向に対�
 
 ### Scene
 
-TypeScriptコードから生成するThree.jsの3Dコンテンツ。長さはm、座標方向は共通定義に従い、オブジェクトを実際の3D位置へ配置する。表示範囲はCameraのfrustumとPortalのscissorによって決まり、Sceneはsafe area、推奨深度、構図を規定しない。
+TypeScriptコードから生成するThree.jsの3Dコンテンツ。長さはm、座標方向は共通定義に従い、オブジェクトを実際の3D位置へ配置する。Scene rootのscaleは常に1とし、Geometryへ指定した1 unitをWorld上の1mとして維持する。表示範囲はCameraのfrustumとPortalのscissorによって決まり、Sceneはsafe area、推奨深度、構図を規定しない。
 
 ### Projection Profile
 
@@ -108,7 +108,7 @@ PortalConfiguration
 
 共通の選択処理は `rules` を上から評価し、最初に一致したVariantを選ぶ。どの条件にも一致しない場合は必須の `otherwise` を選ぶため、常にちょうど1つのVariantが有効になる。各Variantは差分ではなく完全な状態として扱い、切り替え時にはProjection ProfileとScene Variantの両方を適用する。
 
-`sceneVariantId` はコード生成Sceneへ渡す調整一式を識別する。既存Sceneのrootへ位置、回転、スケールを絶対値で再適用し、以前のVariantによる状態を残さない。`otherwise` を含むすべてのVariantが完全なroot transformを再現できるものとする。
+`sceneVariantId` はコード生成Sceneへ渡す調整一式を識別する。既存Sceneのrootへ位置と回転を絶対値で再適用し、以前のVariantによる状態を残さない。`otherwise` を含むすべてのVariantが完全なpositionとrotationを再現できるものとする。
 
 Scene VariantはMedia Queryによって選択し、Portalごとに所有するSceneインスタンスへ適用する。他のPortalのScene状態には影響しない。
 

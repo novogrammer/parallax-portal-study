@@ -24,7 +24,6 @@ export interface SceneVariant {
   sceneVariantId: string
   position: Vector3Tuple
   rotation: Vector3Tuple
-  scale: Vector3Tuple
 }
 
 export interface PortalVariant {

@@ -24,25 +24,21 @@ export const sceneVariants: readonly SceneVariant[] = [
     sceneVariantId: 'warm-wide',
     position: [0, 0, 0],
     rotation: [0, 0, 0],
-    scale: [1, 1, 1],
   },
   {
     sceneVariantId: 'warm-narrow',
     position: [0.2, 0.1, -0.3],
     rotation: [0, 0.08, 0],
-    scale: [0.82, 0.82, 0.82],
   },
   {
     sceneVariantId: 'cool-wide',
     position: [0, 0, 0],
     rotation: [0, 0, 0],
-    scale: [1, 1, 1],
   },
   {
     sceneVariantId: 'cool-narrow',
     position: [-0.2, 0.1, -0.4],
     rotation: [0, -0.08, 0],
-    scale: [0.82, 0.82, 0.82],
   },
 ]
 
