@@ -1,24 +1,18 @@
 import * as THREE from 'three'
 import type { ViewportSize } from '../lib/parallax-portal/index.ts'
-import type { PortalInstance } from './PortalInstance.ts'
+import type { PortalRuntime } from './PortalRuntime.ts'
 
 const MAX_DEVICE_PIXEL_RATIO = 2
 
 export class PortalRenderer {
   private readonly renderer: THREE.WebGLRenderer
-  private readonly portals: readonly PortalInstance[]
+  private readonly runtime: PortalRuntime
   private animationFrameId: number | null = null
   private isStarted = false
 
-  constructor(canvas: HTMLCanvasElement, portals: readonly PortalInstance[]) {
-    this.portals = portals
-    this.renderer = new THREE.WebGLRenderer({
-      canvas,
-      alpha: true,
-      antialias: true,
-    })
-    this.renderer.autoClear = false
-    this.renderer.setClearColor(0x000000, 0)
+  constructor(renderer: THREE.WebGLRenderer, runtime: PortalRuntime) {
+    this.renderer = renderer
+    this.runtime = runtime
   }
 
   start(): void {
@@ -68,21 +62,17 @@ export class PortalRenderer {
     this.renderer.setViewport(0, 0, viewport.width, viewport.height)
     this.renderer.setClearColor(0x000000, 0)
     this.renderer.clear(true, true, true)
-    this.renderer.setScissorTest(true)
-
-    for (const portal of this.portals) {
-      const renderData = portal.getRenderData(viewport)
-
-      if (!renderData) {
-        continue
-      }
-
-      const { scissor } = renderData
-      this.renderer.setViewport(0, 0, viewport.width, viewport.height)
-      this.renderer.setScissor(scissor.x, scissor.y, scissor.width, scissor.height)
-      this.renderer.setClearColor(renderData.clearColor, 1)
-      this.renderer.clear(true, true, true)
-      this.renderer.render(renderData.scene, renderData.camera)
-    }
+    this.runtime.render(viewport)
   }
+}
+
+export function createStandaloneRenderer(canvas: HTMLCanvasElement): THREE.WebGLRenderer {
+  const renderer = new THREE.WebGLRenderer({
+    canvas,
+    alpha: true,
+    antialias: true,
+  })
+  renderer.autoClear = false
+  renderer.setClearColor(0x000000, 0)
+  return renderer
 }

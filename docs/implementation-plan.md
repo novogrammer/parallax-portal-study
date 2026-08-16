@@ -13,6 +13,7 @@ WebGL基準実装を比較基準として、同じPortal体験をWebGPUへ移行
 
 - 状態とライフサイクルはクラス、幾何計算とVariant選択は純粋関数で表現する。
 - 型、Portal Geometry、responsive選択処理は `src/lib/parallax-portal/` のリポジトリ内Coreとして公開し、Runtimeから一方向に依存する。
+- RuntimeはStandalone所有と既存WebGLRendererを借りるEmbedded利用を分離し、共通のPortal Render Passを使う。
 - Portal GeometryへDOM型、Three.js型、Scene固有値を持ち込まない。
 - Scene生成と描画制御を分離する。
 - 参照実装の固有名称、Scene構成、責務集中を引き継がない。
@@ -32,6 +33,7 @@ WebGLRendererで、垂直投影、スクロール連動Camera、2つのPortalの
 - 初期化時の設定検証、実行時不正値に対するCamera状態維持
 - Runtime、Media Query listener、Three.jsリソースの破棄
 - 描画やブラウザAPIに依存しないPortal Coreと、`matchMedia()`を所有するRuntime Controllerの分離
+- 画面全体の既存Canvas、単一Renderer、単一RAFへ追加できるEmbedded RuntimeとRenderer状態復元
 - 純粋関数の単体テストとChromeでの表示確認
 
 GLB、独自Shader、ポストプロセス、追加Motion、UIの本格的な作り込み、Renderer切り替え抽象化は対象外とした。現在の責務分割は[設計概要](./overview.md)、具体的な実装値は[検証条件](./validation.md)を参照する。

@@ -1,11 +1,6 @@
 import * as THREE from 'three'
 import type { SceneConfiguration } from '../lib/parallax-portal/index.ts'
-
-export interface StudySceneBundle {
-  scene: THREE.Scene
-  clearColor: THREE.ColorRepresentation
-  dispose: () => void
-}
+import type { PortalSceneBundle } from './PortalInstance.ts'
 
 function createMaterial(color: THREE.ColorRepresentation, roughness: number): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({ color, roughness, metalness: 0.08 })
@@ -111,7 +106,7 @@ function disposeScene(scene: THREE.Scene): void {
   scene.clear()
 }
 
-export function createStudyScene(sceneConfiguration: SceneConfiguration): StudySceneBundle {
+export function createStudyScene(sceneConfiguration: SceneConfiguration): PortalSceneBundle {
   const scene = new THREE.Scene()
   const root = new THREE.Group()
   scene.add(root)

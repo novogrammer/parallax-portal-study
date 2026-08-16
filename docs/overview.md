@@ -31,6 +31,8 @@ Portal Runtime ---> PortalRenderer ---> position: fixed Canvas ---> Scene
 
 `src/lib/parallax-portal/` をリポジトリ内で再利用するPortal Coreの公開境界とする。Coreは型、Portal Geometry、responsive Variantの純粋な選択と設定参照検証を提供し、DOM、Three.js、ブラウザAPI、Scene固有値には依存しない。`src/portal/` のRuntimeと習作固有設定はCoreへ依存し、逆方向の依存は持たない。
 
+Runtimeには2つの利用形態がある。Standaloneの `ParallaxPortalApp` はRenderer、viewport resize、RAF、Canvas全体の透明clearを所有する。Embeddedの `PortalRuntime` は既存の `WebGLRenderer` を借り、ホスト側のRAFから1フレーム分の `render(viewport)` を呼び出して使う。EmbeddedではRendererの生成、寸法変更、全体clear、RAF、Rendererの破棄を行わない。
+
 - full Portal rectはCameraと投影の計算に使う。
 - Portalとviewportの交差矩形はscissorだけに使う。
 - WebGL viewportは常にCanvas全体とし、Portalごとに変更しない。
@@ -138,12 +140,33 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 
 ### Runtime
 
-- WebGLRenderer、PerspectiveCamera、固定Canvas、描画ループを管理する。
-- resize、DPR上限、Camera aspect、導出したCamera状態を描画へ反映する。
+- PortalごとのPerspectiveCamera、Scene、DOM要素、導出したCamera状態を管理する。
+- Standalone wrapperはWebGLRenderer、固定Canvas、描画ループ、resize、DPR上限を管理する。
 - Canvas全体のviewportを維持し、Portalごとのscissor内をclearして描画する。
-- CanvasのPortal外領域を透明に維持する。
+- StandaloneではCanvasのPortal外領域を透明にし、EmbeddedではPortal外の既存描画を変更しない。
 - `ResponsiveVariantController` が `window.matchMedia()` と変更listenerを所有し、Coreの純粋な選択関数でProfileを切り替える。
-- Scene、Media Query listener、Rendererの破棄を管理する。
+- RuntimeはSceneとMedia Query listenerを破棄し、Standalone wrapperだけが所有するRendererを破棄する。
+
+Embeddedの `PortalRuntime` はScene生成関数を受け取り、習作固有Sceneへ依存しない。借りたRendererのviewport、scissor、scissor test、clear colorとalpha、`autoClear`、render targetを描画前に保存し、成功時と例外時の両方で復元する。フレームバッファのPortal領域はclear・描画されるため、ホストは既存Sceneとの描画順を決め、通常はPortal描画をそのフレーム内の意図した位置で呼び出す。
+
+```ts
+const portalRuntime = new PortalRuntime({
+  renderer,
+  configurations,
+  profiles,
+  referenceProjectionHeightMeters,
+  sceneConfigurations,
+  createScene,
+})
+
+portalRuntime.initialize()
+
+function renderFrame(): void {
+  portalRuntime.render({ width: window.innerWidth, height: window.innerHeight })
+}
+```
+
+EmbeddedもCanvasがviewport全体を覆い、Canvas左上とviewport左上が一致することを前提とする。任意位置・任意サイズCanvasの座標変換は対象外とする。
 
 Cameraは `(0, cameraY, referenceCameraDistance)` に置き、回転なしで負のZ方向へ向ける。Camera Yに応じて向きが変わる `lookAt()` は使用しない。
 

@@ -1,16 +1,10 @@
-import {
-  validateProjectionProfile,
-  validateProjectionProfileReferences,
-  validateReferenceProjectionHeight,
-  validateSceneConfiguration,
-} from '../lib/parallax-portal/index.ts'
 import type {
   PortalConfiguration,
   ProjectionProfile,
   SceneConfiguration,
 } from '../lib/parallax-portal/index.ts'
-import { PortalInstance } from './PortalInstance.ts'
-import { PortalRenderer } from './PortalRenderer.ts'
+import { createStandaloneRenderer, PortalRenderer } from './PortalRenderer.ts'
+import { PortalRuntime } from './PortalRuntime.ts'
 import { createStudyScene } from './studyScene.ts'
 
 export interface ParallaxPortalAppOptions {
@@ -21,25 +15,9 @@ export interface ParallaxPortalAppOptions {
   sceneConfigurations: readonly SceneConfiguration[]
 }
 
-function createUniqueMap<T>(items: readonly T[], getId: (item: T) => string, label: string): Map<string, T> {
-  const map = new Map<string, T>()
-
-  for (const item of items) {
-    const id = getId(item)
-
-    if (map.has(id)) {
-      throw new Error(`Duplicate ${label}: ${id}`)
-    }
-
-    map.set(id, item)
-  }
-
-  return map
-}
-
 export class ParallaxPortalApp {
   private readonly options: ParallaxPortalAppOptions
-  private portals: PortalInstance[] = []
+  private runtime: PortalRuntime | null = null
   private renderer: PortalRenderer | null = null
   private isInitialized = false
 
@@ -52,65 +30,24 @@ export class ParallaxPortalApp {
       return
     }
 
-    const profiles = createUniqueMap(this.options.profiles, ({ profileId }) => profileId, 'profileId')
-    const sceneConfigurations = createUniqueMap(
-      this.options.sceneConfigurations,
-      ({ sceneId }) => sceneId,
-      'sceneId',
-    )
-    const portalIds = new Set<string>()
-
-    profiles.forEach(validateProjectionProfile)
-    validateReferenceProjectionHeight(this.options.referenceProjectionHeightMeters)
-    sceneConfigurations.forEach(validateSceneConfiguration)
+    const webGlRenderer = createStandaloneRenderer(this.options.canvas)
+    const runtime = new PortalRuntime({
+      renderer: webGlRenderer,
+      configurations: this.options.configurations,
+      profiles: this.options.profiles,
+      referenceProjectionHeightMeters: this.options.referenceProjectionHeightMeters,
+      sceneConfigurations: this.options.sceneConfigurations,
+      createScene: createStudyScene,
+    })
 
     try {
-      this.portals = this.options.configurations.map((configuration) => {
-        if (portalIds.has(configuration.portalId)) {
-          throw new Error(`Duplicate portalId: ${configuration.portalId}`)
-        }
-        portalIds.add(configuration.portalId)
-
-        validateProjectionProfileReferences(configuration, profiles)
-
-        const sceneConfiguration = sceneConfigurations.get(configuration.sceneId)
-
-        if (!sceneConfiguration) {
-          throw new Error(
-            `Portal "${configuration.portalId}" references unknown scene "${configuration.sceneId}".`,
-          )
-        }
-
-        const element = document.querySelector<HTMLElement>(
-          `[data-portal-id="${CSS.escape(configuration.portalId)}"]`,
-        )
-
-        if (!element) {
-          throw new Error(`Portal element "${configuration.portalId}" was not found.`)
-        }
-
-        const sceneBundle = createStudyScene(sceneConfiguration)
-
-        try {
-          return new PortalInstance(
-            configuration,
-            element,
-            profiles,
-            sceneConfiguration,
-            this.options.referenceProjectionHeightMeters,
-            sceneBundle,
-          )
-        } catch (error) {
-          sceneBundle.dispose()
-          throw error
-        }
-      })
-
-      this.renderer = new PortalRenderer(this.options.canvas, this.portals)
+      runtime.initialize()
+      this.runtime = runtime
+      this.renderer = new PortalRenderer(webGlRenderer, runtime)
       this.isInitialized = true
     } catch (error) {
-      this.portals.forEach((portal) => portal.dispose())
-      this.portals = []
+      runtime.dispose()
+      webGlRenderer.dispose()
       throw error
     }
   }
@@ -127,9 +64,9 @@ export class ParallaxPortalApp {
   dispose(): void {
     window.removeEventListener('pagehide', this.handlePageHide)
     this.renderer?.dispose()
-    this.portals.forEach((portal) => portal.dispose())
+    this.runtime?.dispose()
     this.renderer = null
-    this.portals = []
+    this.runtime = null
     this.isInitialized = false
   }
 

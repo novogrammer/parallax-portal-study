@@ -1,5 +1,5 @@
 import './style.scss'
-import { ParallaxPortalApp } from './portal/ParallaxPortalApp.ts'
+import { ParallaxPortalApp } from './portal/index.ts'
 import {
   portalConfigurations,
   projectionProfiles,

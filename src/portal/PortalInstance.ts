@@ -14,7 +14,12 @@ import type {
   WebGlScissorRect,
 } from '../lib/parallax-portal/index.ts'
 import { ResponsiveVariantController } from './ResponsiveVariantController.ts'
-import type { StudySceneBundle } from './studyScene.ts'
+
+export interface PortalSceneBundle {
+  scene: THREE.Scene
+  clearColor: THREE.ColorRepresentation
+  dispose: () => void
+}
 
 export interface PortalRenderData {
   scene: THREE.Scene
@@ -37,7 +42,7 @@ export class PortalInstance {
   private readonly profiles: ReadonlyMap<string, ProjectionProfile>
   private readonly sceneConfiguration: SceneConfiguration
   private readonly referenceProjectionHeightMeters: number
-  private readonly sceneBundle: StudySceneBundle
+  private readonly sceneBundle: PortalSceneBundle
   private readonly camera: THREE.PerspectiveCamera
   private readonly responsiveController: ResponsiveVariantController
   private activeProfile: ProjectionProfile
@@ -50,7 +55,7 @@ export class PortalInstance {
     profiles: ReadonlyMap<string, ProjectionProfile>,
     sceneConfiguration: SceneConfiguration,
     referenceProjectionHeightMeters: number,
-    sceneBundle: StudySceneBundle,
+    sceneBundle: PortalSceneBundle,
   ) {
     this.configuration = configuration
     this.element = element

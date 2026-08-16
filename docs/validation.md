@@ -15,7 +15,11 @@
 | 複数Portalを同時表示 | 各Sceneが対応するscissor領域だけに描画される |
 | Portalごとの描画 | WebGL viewportはCanvas全体のまま、scissorだけが交差矩形へ変わる |
 | Portal描画前 | 対象scissor内のcolor bufferとdepth bufferがclearされる |
-| Portal外のCanvas領域 | 透明で背面のDOMが表示される |
+| Embedded RuntimeでPortalを描画 | 借りたRendererのviewport、scissor、scissor test、clear設定、`autoClear`、render targetが復元される |
+| Embedded RuntimeのPortal描画で例外 | Renderer状態を復元してから例外がホストへ伝播する |
+| Embedded Runtimeを破棄 | Sceneとlistenerだけを破棄し、借りたRendererは破棄しない |
+| StandaloneのPortal外Canvas領域 | 透明で背面のDOMが表示される |
+| EmbeddedのPortal外Canvas領域 | ホストが先に描画した内容を変更しない |
 | 複数Portalを配置 | Portal同士が重ならず、描画順に依存しない |
 | 同じSceneを異なるProfileで使用 | 各Portalが独立したCamera結果を持つ |
 | 異なるSceneとProfileを使用 | 一方の設定変更が他方へ影響しない |
