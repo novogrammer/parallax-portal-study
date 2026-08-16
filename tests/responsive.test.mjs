@@ -4,7 +4,7 @@ import {
   listConfiguredVariants,
   selectResponsiveVariant,
   validateProjectionProfileReferences,
-} from '../src/portal/responsive.ts'
+} from '../src/lib/parallax-portal/index.ts'
 
 const rules = [
   {

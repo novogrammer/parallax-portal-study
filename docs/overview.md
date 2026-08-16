@@ -17,7 +17,7 @@ Page / DOM
     |
     | full Portal rect
     v
-Portal Geometry <--- Projection Profile
+Portal Core / Geometry <--- Projection Profile
         ^
         |
         +---------- Scene Configuration
@@ -26,8 +26,10 @@ Portal Geometry <--- Projection Profile
     |
     | Camera position, projection, scissor rect
     v
-PortalRenderer ---> position: fixed Canvas ---> Scene
+Portal Runtime ---> PortalRenderer ---> position: fixed Canvas ---> Scene
 ```
+
+`src/lib/parallax-portal/` をリポジトリ内で再利用するPortal Coreの公開境界とする。Coreは型、Portal Geometry、responsive Variantの純粋な選択と設定参照検証を提供し、DOM、Three.js、ブラウザAPI、Scene固有値には依存しない。`src/portal/` のRuntimeと習作固有設定はCoreへ依存し、逆方向の依存は持たない。
 
 - full Portal rectはCameraと投影の計算に使う。
 - Portalとviewportの交差矩形はscissorだけに使う。
@@ -140,7 +142,8 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 - resize、DPR上限、Camera aspect、導出したCamera状態を描画へ反映する。
 - Canvas全体のviewportを維持し、Portalごとのscissor内をclearして描画する。
 - CanvasのPortal外領域を透明に維持する。
-- Media QueryによるProfile切り替えと、Scene、listener、Rendererの破棄を管理する。
+- `ResponsiveVariantController` が `window.matchMedia()` と変更listenerを所有し、Coreの純粋な選択関数でProfileを切り替える。
+- Scene、Media Query listener、Rendererの破棄を管理する。
 
 Cameraは `(0, cameraY, referenceCameraDistance)` に置き、回転なしで負のZ方向へ向ける。Camera Yに応じて向きが変わる `lookAt()` は使用しない。
 

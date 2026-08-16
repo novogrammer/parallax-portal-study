@@ -11,7 +11,7 @@ import {
   validateProjectionProfile,
   validateReferenceProjectionHeight,
   validateSceneConfiguration,
-} from '../src/portal/geometry.ts'
+} from '../src/lib/parallax-portal/index.ts'
 
 const profile = {
   profileId: 'test',

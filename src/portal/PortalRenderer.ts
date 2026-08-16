@@ -1,6 +1,6 @@
 import * as THREE from 'three'
+import type { ViewportSize } from '../lib/parallax-portal/index.ts'
 import type { PortalInstance } from './PortalInstance.ts'
-import type { ViewportSize } from './types.ts'
 
 const MAX_DEVICE_PIXEL_RATIO = 2
 

@@ -1,13 +1,17 @@
 import {
   validateProjectionProfile,
+  validateProjectionProfileReferences,
   validateReferenceProjectionHeight,
   validateSceneConfiguration,
-} from './geometry.ts'
+} from '../lib/parallax-portal/index.ts'
+import type {
+  PortalConfiguration,
+  ProjectionProfile,
+  SceneConfiguration,
+} from '../lib/parallax-portal/index.ts'
 import { PortalInstance } from './PortalInstance.ts'
 import { PortalRenderer } from './PortalRenderer.ts'
-import { validateProjectionProfileReferences } from './responsive.ts'
 import { createStudyScene } from './studyScene.ts'
-import type { PortalConfiguration, ProjectionProfile, SceneConfiguration } from './types.ts'
 
 export interface ParallaxPortalAppOptions {
   canvas: HTMLCanvasElement

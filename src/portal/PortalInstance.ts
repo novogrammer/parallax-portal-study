@@ -1,7 +1,9 @@
 import * as THREE from 'three'
-import { calculatePortalGeometry, calculatePortalIntersection, calculateWebGlScissor } from './geometry.ts'
-import { ResponsiveVariantController } from './responsive.ts'
-import type { StudySceneBundle } from './studyScene.ts'
+import {
+  calculatePortalGeometry,
+  calculatePortalIntersection,
+  calculateWebGlScissor,
+} from '../lib/parallax-portal/index.ts'
 import type {
   PortalConfiguration,
   ProjectionProfile,
@@ -10,7 +12,9 @@ import type {
   SceneConfiguration,
   ViewportSize,
   WebGlScissorRect,
-} from './types.ts'
+} from '../lib/parallax-portal/index.ts'
+import { ResponsiveVariantController } from './ResponsiveVariantController.ts'
+import type { StudySceneBundle } from './studyScene.ts'
 
 export interface PortalRenderData {
   scene: THREE.Scene

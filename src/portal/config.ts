@@ -1,4 +1,8 @@
-import type { PortalConfiguration, ProjectionProfile, SceneConfiguration } from './types.ts'
+import type {
+  PortalConfiguration,
+  ProjectionProfile,
+  SceneConfiguration,
+} from '../lib/parallax-portal/index.ts'
 
 const degreesToRadians = (degrees: number): number => degrees * Math.PI / 180
 
