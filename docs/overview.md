@@ -29,7 +29,7 @@ Portal Core / Geometry <--- Projection Profile
 Portal Runtime ---> PortalRenderer ---> position: fixed Canvas ---> Scene
 ```
 
-`src/lib/parallax-portal/` をリポジトリ内で再利用するPortal Coreの公開境界とする。Coreは型、Portal Geometry、responsive Variantの純粋な選択と設定参照検証を提供し、DOM、Three.js、ブラウザAPI、Scene固有値には依存しない。`src/portal/` のRuntimeと習作固有設定はCoreへ依存し、逆方向の依存は持たない。
+`src/lib/parallax-portal/` にリポジトリ内で再利用するPortal Coreを配置する。Coreは型、Portal Geometry、responsive Variantの純粋な選択と設定参照検証を提供し、DOM、Three.js、ブラウザAPI、Scene固有値には依存しない。`src/portal/` のRuntimeと習作固有設定はCoreへ依存し、逆方向の依存は持たない。利用側は `index.ts` を入口とし、Core内部だけが各モジュールを直接importする。この入口はリポジトリ内の利用境界であり、独立パッケージであることを意味しない。
 
 Runtimeには2つの利用形態がある。Standaloneの `ParallaxPortalApp` はRenderer、viewport resize、RAF、Canvas全体の透明clearを所有する。Embeddedの `PortalRuntime` は既存の `WebGLRenderer` を借り、ホスト側のRAFから1フレーム分の `render(viewport)` を呼び出して使う。EmbeddedではRendererの生成、寸法変更、全体clear、RAF、Rendererの破棄を行わない。
 

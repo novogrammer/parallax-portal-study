@@ -12,7 +12,7 @@ WebGL基準実装を比較基準として、同じPortal体験をWebGPUへ移行
 ## 共通方針
 
 - 状態とライフサイクルはクラス、幾何計算とVariant選択は純粋関数で表現する。
-- 型、Portal Geometry、responsive選択処理は `src/lib/parallax-portal/` のリポジトリ内Coreとして公開し、Runtimeから一方向に依存する。
+- 型、Portal Geometry、responsive選択処理は `src/lib/parallax-portal/` のリポジトリ内Coreへ配置し、利用側は `index.ts` を入口としてRuntimeから一方向に依存する。
 - RuntimeはStandalone所有と既存WebGLRendererを借りるEmbedded利用を分離し、共通のPortal Render Passを使う。
 - Portal GeometryへDOM型、Three.js型、Scene固有値を持ち込まない。
 - Scene生成と描画制御を分離する。
