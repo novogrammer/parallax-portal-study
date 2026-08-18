@@ -3,14 +3,14 @@ import {
   calculatePortalGeometry,
   calculatePortalIntersection,
   calculateWebGlScissor,
-} from '../lib/parallax-portal/index.ts'
+} from './geometry.ts'
 import type {
   ProjectionProfile,
   Rect,
   SceneConfiguration,
   ViewportSize,
   WebGlScissorRect,
-} from '../lib/parallax-portal/index.ts'
+} from './types.ts'
 
 export interface PortalDefinition extends SceneConfiguration {
   element: HTMLElement

@@ -1,10 +1,12 @@
 import * as THREE from 'three'
-import type { ViewportSize } from '../lib/parallax-portal/index.ts'
-import type { PortalRuntime } from './PortalRuntime.ts'
+import type {
+  PortalRuntime,
+  ViewportSize,
+} from './lib/parallax-portal/index.ts'
 
 const MAX_DEVICE_PIXEL_RATIO = 2
 
-export class PortalRenderer {
+export class StudyRenderer {
   private readonly renderer: THREE.WebGLRenderer
   private readonly runtime: PortalRuntime
   private animationFrameId: number | null = null

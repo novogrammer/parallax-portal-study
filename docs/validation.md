@@ -44,7 +44,7 @@
 | 初回から実行時FOVが不正 | 対象Portalを描画しない |
 | 不正状態が複数フレーム継続 | `console.error` を毎フレーム繰り返さない |
 | Portal DefinitionへDOM要素を渡す | その要素の実測矩形がPortal Geometryへ使われる |
-| Standaloneの対象DOM要素がない | App初期化時に例外を投げて処理を終了する |
+| Standaloneの対象DOM要素がない | StudyApp初期化時に例外を投げて処理を終了する |
 
 ## 第1段階の実装値
 

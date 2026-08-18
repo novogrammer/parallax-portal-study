@@ -1,18 +1,18 @@
-import { createStandaloneRenderer, PortalRenderer } from './PortalRenderer.ts'
-import { PortalRuntime } from './PortalRuntime.ts'
+import { PortalRuntime } from './lib/parallax-portal/index.ts'
+import { createStandaloneRenderer, StudyRenderer } from './StudyRenderer.ts'
 import {
   coolSceneConfiguration,
   projectionConfiguration,
   referenceProjectionHeightMeters,
   warmSceneConfiguration,
-} from './config.ts'
+} from './studyConfig.ts'
 import {
   createCoolStudyScene,
   createWarmStudyScene,
 } from './studyScene.ts'
 import type { StudySceneBundle } from './studyScene.ts'
 
-export interface ParallaxPortalAppOptions {
+export interface StudyAppOptions {
   canvas: HTMLCanvasElement
 }
 
@@ -28,14 +28,14 @@ function requirePortalElement(portalId: string): HTMLElement {
   return element
 }
 
-export class ParallaxPortalApp {
-  private readonly options: ParallaxPortalAppOptions
+export class StudyApp {
+  private readonly options: StudyAppOptions
   private sceneBundles: StudySceneBundle[] = []
   private runtime: PortalRuntime | null = null
-  private renderer: PortalRenderer | null = null
+  private renderer: StudyRenderer | null = null
   private isInitialized = false
 
-  constructor(options: ParallaxPortalAppOptions) {
+  constructor(options: StudyAppOptions) {
     this.options = options
   }
 
@@ -78,7 +78,7 @@ export class ParallaxPortalApp {
 
       this.sceneBundles = sceneBundles
       this.runtime = runtime
-      this.renderer = new PortalRenderer(webGlRenderer, runtime)
+      this.renderer = new StudyRenderer(webGlRenderer, runtime)
       this.isInitialized = true
     } catch (error) {
       runtime?.dispose()
@@ -90,7 +90,7 @@ export class ParallaxPortalApp {
 
   start(): void {
     if (!this.isInitialized || !this.renderer) {
-      throw new Error('ParallaxPortalApp must be initialized before start().')
+      throw new Error('StudyApp must be initialized before start().')
     }
 
     this.renderer.start()

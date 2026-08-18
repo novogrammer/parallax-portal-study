@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import * as THREE from 'three'
-import { PortalRenderPass } from '../src/portal/PortalRenderPass.ts'
+import { PortalRenderPass } from '../src/lib/parallax-portal/PortalRenderPass.ts'
 
 class FakeRenderer {
   autoClear = true

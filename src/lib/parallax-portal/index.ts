@@ -1,3 +1,4 @@
+export { PortalRuntime } from './PortalRuntime.ts'
 export {
   calculateCameraY,
   calculateCenterProgress,
@@ -13,6 +14,12 @@ export {
 export {
   selectResponsiveProjection,
 } from './responsive.ts'
+export type {
+  PortalRuntimeOptions,
+} from './PortalRuntime.ts'
+export type {
+  PortalDefinition,
+} from './PortalInstance.ts'
 export type {
   PortalGeometryResult,
   ProjectionProfile,

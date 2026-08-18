@@ -1,5 +1,5 @@
 import './style.scss'
-import { ParallaxPortalApp } from './portal/ParallaxPortalApp.ts'
+import { StudyApp } from './StudyApp.ts'
 
 function main(): void {
   const canvas = document.querySelector<HTMLCanvasElement>('.p-home-canvas')
@@ -8,7 +8,7 @@ function main(): void {
     throw new Error('The shared portal canvas was not found.')
   }
 
-  const app = new ParallaxPortalApp({
+  const app = new StudyApp({
     canvas,
   })
 

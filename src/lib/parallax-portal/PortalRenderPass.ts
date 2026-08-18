@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import type { ViewportSize } from '../lib/parallax-portal/index.ts'
+import type { ViewportSize } from './types.ts'
 import type { PortalRenderData } from './PortalInstance.ts'
 
 interface PortalRenderable {

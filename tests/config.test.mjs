@@ -5,7 +5,7 @@ import {
   projectionConfiguration,
   referenceProjectionHeightMeters,
   warmSceneConfiguration,
-} from '../src/portal/config.ts'
+} from '../src/studyConfig.ts'
 
 test('wide and narrow viewing conditions use different shared FOVs', () => {
   assert.equal(projectionConfiguration.rules.length, 1)

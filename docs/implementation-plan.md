@@ -12,7 +12,8 @@ WebGL基準実装を比較基準として、同じPortal体験をWebGPUへ移行
 ## 共通方針
 
 - 状態とライフサイクルはクラス、幾何計算とresponsive Projection選択は純粋関数で表現する。
-- 型、Portal Geometry、responsive選択処理は `src/lib/parallax-portal/` のリポジトリ内Coreへ配置し、利用側は `index.ts` を入口としてRuntimeから一方向に依存する。
+- 再利用するPortal Runtime、型、Portal Geometry、responsive選択処理は `src/lib/parallax-portal/` へ配置し、利用側は `index.ts` だけを入口とする。
+- 習作固有のApp、Renderer、設定、Sceneは `main.ts` と同じ `src/` 直下へ置き、libへ一方向に依存する利用例として扱う。
 - RuntimeはStandalone所有と既存WebGLRendererを借りるEmbedded利用を分離し、共通のPortal Render Passを使う。
 - Embedded Runtimeは共通ProjectionとPortalごとのDOM要素、Scene、Camera範囲を直接受け取り、参照IDやScene factoryを介さない。
 - RendererとSceneは借用し、Runtime自身が登録したlistenerだけを破棄する。

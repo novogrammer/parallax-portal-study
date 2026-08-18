@@ -3,12 +3,12 @@ import {
   validateProjectionProfile,
   validateReferenceProjectionHeight,
   validateSceneConfiguration,
-} from '../lib/parallax-portal/index.ts'
+} from './geometry.ts'
 import type {
   ProjectionProfile,
   ResponsiveProjectionConfiguration,
   ViewportSize,
-} from '../lib/parallax-portal/index.ts'
+} from './types.ts'
 import { PortalInstance } from './PortalInstance.ts'
 import type { PortalDefinition } from './PortalInstance.ts'
 import { PortalRenderPass } from './PortalRenderPass.ts'

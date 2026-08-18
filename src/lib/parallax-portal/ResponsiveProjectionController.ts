@@ -1,8 +1,8 @@
-import { selectResponsiveProjection } from '../lib/parallax-portal/index.ts'
+import { selectResponsiveProjection } from './responsive.ts'
 import type {
   ProjectionProfile,
   ResponsiveProjectionConfiguration,
-} from '../lib/parallax-portal/index.ts'
+} from './types.ts'
 
 function isSameProjection(left: ProjectionProfile, right: ProjectionProfile): boolean {
   return left.referenceFovY === right.referenceFovY

@@ -26,12 +26,14 @@ Portal Core / Geometry <--- Projection Profile
     |
     | Camera position, projection, scissor rect
     v
-Portal Runtime ---> PortalRenderer ---> position: fixed Canvas ---> Scene
+Portal Runtime ---> host Renderer ---> position: fixed Canvas ---> Scene
 ```
 
-`src/lib/parallax-portal/` にリポジトリ内で再利用するPortal Coreを配置する。Coreは型、Portal Geometry、responsive Projectionの純粋な選択を提供し、DOM、Three.js、ブラウザAPI、Scene固有値には依存しない。`src/portal/` のRuntimeと習作固有設定はCoreへ依存し、逆方向の依存は持たない。利用側は `index.ts` を入口とし、Core内部だけが各モジュールを直接importする。この入口はリポジトリ内の利用境界であり、独立パッケージであることを意味しない。
+`src/lib/parallax-portal/` にリポジトリ内で再利用するPortal RuntimeとPortal Geometryを配置する。利用側は `index.ts` を唯一の入口とし、lib内部だけが各モジュールを直接importする。Geometryとresponsive Projectionの純粋な選択処理は、同じlib内のRuntimeから分離し、DOM、Three.js、ブラウザAPI、Scene固有値には依存しない。
 
-Runtimeには2つの利用形態がある。Standaloneの `ParallaxPortalApp` はRenderer、viewport resize、RAF、Canvas全体の透明clearを所有する。Embeddedの `PortalRuntime` は既存の `WebGLRenderer` を借り、ホスト側のRAFから1フレーム分の `render(viewport)` を呼び出して使う。EmbeddedではRendererの生成、寸法変更、全体clear、RAF、Rendererの破棄を行わない。
+`src/` 直下の `main.ts`、`StudyApp.ts`、`StudyRenderer.ts`、`studyConfig.ts`、`studyScene.ts` は、この習作固有の利用例でありlibには含めない。この平置きによって、習作が公開入口からlibを利用する依存方向を構造で示す。
+
+Runtimeには2つの利用形態がある。Standaloneの `StudyApp` と `StudyRenderer` はRenderer、viewport resize、RAF、Canvas全体の透明clearを所有する。Embeddedの `PortalRuntime` は既存の `WebGLRenderer` を借り、ホスト側のRAFから1フレーム分の `render(viewport)` を呼び出して使う。EmbeddedではRendererの生成、寸法変更、全体clear、RAF、Rendererの破棄を行わない。
 
 - full Portal rectはCameraと投影の計算に使う。
 - Portalとviewportの交差矩形はscissorだけに使う。
@@ -157,6 +159,8 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 Embeddedの `PortalRuntime` はDOM要素とSceneを直接受け取り、習作固有Sceneへ依存しない。借りたRendererのviewport、scissor、scissor test、clear colorとalpha、`autoClear`、render targetを描画前に保存し、成功時と例外時の両方で復元する。フレームバッファのPortal領域はclear・描画されるため、ホストは既存Sceneとの描画順を決め、通常はPortal描画をそのフレーム内の意図した位置で呼び出す。
 
 ```ts
+import { PortalRuntime } from './lib/parallax-portal/index.ts'
+
 const portalRuntime = new PortalRuntime({
   renderer,
   projection,
@@ -184,7 +188,7 @@ Cameraは `(0, cameraY, referenceCameraDistance)` に置き、回転なしで負
 ### Page / UI
 
 - DOM窓、通常コンテンツ、前面レイヤーを配置する。
-- Standaloneでは `data-portal-id` からDOM要素を取得し、Runtimeへ直接渡す。
+- 習作の `StudyApp` は `data-portal-id` からDOM要素を取得し、Runtimeへ直接渡す。
 - Portal寸法をCSSで定義し、Runtimeは `getBoundingClientRect()` のCSS px実測値を使う。
 - viewport条件と共通Projection Profileの対応を設定する。
 
