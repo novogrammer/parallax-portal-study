@@ -14,6 +14,7 @@ import type { StudySceneBundle } from './studyScene.ts'
 
 export interface StudyAppOptions {
   canvas: HTMLCanvasElement
+  forceWebGL: boolean
 }
 
 function requirePortalElement(portalId: string): HTMLElement {
@@ -46,7 +47,7 @@ export class StudyApp {
 
     const warmElement = requirePortalElement('warm-depth')
     const coolElement = requirePortalElement('cool-depth')
-    const webGlRenderer = createStandaloneRenderer(this.options.canvas)
+    const renderer = createStandaloneRenderer(this.options.canvas, this.options.forceWebGL)
     const sceneBundles: StudySceneBundle[] = []
     let runtime: PortalRuntime | null = null
 
@@ -57,7 +58,7 @@ export class StudyApp {
       sceneBundles.push(coolScene)
 
       runtime = new PortalRuntime({
-        renderer: webGlRenderer,
+        renderer,
         projection: projectionConfiguration,
         referenceProjectionHeightMeters,
         portals: [
@@ -78,23 +79,30 @@ export class StudyApp {
 
       this.sceneBundles = sceneBundles
       this.runtime = runtime
-      this.renderer = new StudyRenderer(webGlRenderer, runtime)
+      this.renderer = new StudyRenderer(renderer, runtime)
       this.isInitialized = true
     } catch (error) {
       runtime?.dispose()
       sceneBundles.forEach((sceneBundle) => sceneBundle.dispose())
-      webGlRenderer.dispose()
+      if (renderer.initialized) {
+        renderer.dispose()
+      }
       throw error
     }
   }
 
-  start(): void {
+  async start(): Promise<void> {
     if (!this.isInitialized || !this.renderer) {
       throw new Error('StudyApp must be initialized before start().')
     }
 
-    this.renderer.start()
-    window.addEventListener('pagehide', this.handlePageHide, { once: true })
+    try {
+      await this.renderer.start()
+      window.addEventListener('pagehide', this.handlePageHide, { once: true })
+    } catch (error) {
+      this.dispose()
+      throw error
+    }
   }
 
   dispose(): void {

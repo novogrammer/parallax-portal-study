@@ -9,13 +9,13 @@ Portal Runtime、Geometry、投影数式の正本は、別リポジトリの[par
 | 段階 | 状態 |
 | --- | --- |
 | 第1段階: WebGL基準実装 | 完了 |
-| 第2段階: WebGPU移行検証 | 未着手 |
+| 第2段階: WebGPU移行検証 | 進行中 |
 
 ## 共通方針
 
 - `parallax-portal` をGitHubのcommit SHAへ固定して利用する。
 - 習作固有のApp、Renderer、設定、Sceneは `main.ts` と同じ `src/` 直下へ置く。
-- StudyがCanvas、WebGLRenderer、resize、RAF、全体clear、Sceneリソースを所有する。
+- StudyがCanvas、WebGPURenderer、resize、`setAnimationLoop()`、全体clear、Sceneリソースを所有する。
 - packageから借りる `PortalRuntime` へRenderer、DOM要素、Scene、Projection設定を渡す。
 - Scene内のオブジェクト配置はStudyのScene生成コードで調整する。
 - packageの一般仕様をStudyへ複製せず、この習作で選んだ値と検証結果だけを記録する。
@@ -54,7 +54,7 @@ WebGL版の描画結果を比較基準として確認できること。
 ### 対象範囲
 
 - Three.jsのimportを `three/webgpu` へ統一し、WebGPURendererへ置き換える。
-- Rendererの非同期初期化に対応する。
+- `setAnimationLoop()` にRendererの非同期初期化と描画開始を委ねる。
 - WebGPUの座標原点に合わせてviewportとscissorを調整する。
 - 透明Canvas、Portal単位のclear、複数Scene描画を確認する。
 - WebGPU backendと自動WebGL 2 fallbackを確認する。
@@ -73,5 +73,4 @@ WebGPU専用compute、TSL、独自Material、ポストプロセス、WebGL版に
 
 ## 未決事項
 
-- WebGPU対応をpackageの既存Runtimeへ追加するか、別のRuntimeとして提供するか
-- WebGL版を比較用として保持するか、WebGPURendererへ置き換えるか
+- WebGPU版のブラウザ検証後、packageとStudyをmainへマージするか

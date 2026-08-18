@@ -1,7 +1,7 @@
 import './style.scss'
 import { StudyApp } from './StudyApp.ts'
 
-function main(): void {
+async function main(): Promise<void> {
   const canvas = document.querySelector<HTMLCanvasElement>('.p-home-canvas')
 
   if (!canvas) {
@@ -10,15 +10,14 @@ function main(): void {
 
   const app = new StudyApp({
     canvas,
+    forceWebGL: new URLSearchParams(window.location.search).get('forceWebGL') === '1',
   })
 
   app.initialize()
-  app.start()
+  await app.start()
 }
 
-try {
-  main()
-} catch (error: unknown) {
+main().catch((error: unknown) => {
   document.documentElement.classList.add('portal-unavailable')
   console.error(error)
-}
+})

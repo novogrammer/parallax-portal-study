@@ -1,4 +1,4 @@
-import * as THREE from 'three'
+import * as THREE from 'three/webgpu'
 import type {
   PortalRuntime,
   ViewportSize,
@@ -7,17 +7,16 @@ import type {
 const MAX_DEVICE_PIXEL_RATIO = 2
 
 export class StudyRenderer {
-  private readonly renderer: THREE.WebGLRenderer
+  private readonly renderer: THREE.WebGPURenderer
   private readonly runtime: PortalRuntime
-  private animationFrameId: number | null = null
   private isStarted = false
 
-  constructor(renderer: THREE.WebGLRenderer, runtime: PortalRuntime) {
+  constructor(renderer: THREE.WebGPURenderer, runtime: PortalRuntime) {
     this.renderer = renderer
     this.runtime = runtime
   }
 
-  start(): void {
+  async start(): Promise<void> {
     if (this.isStarted) {
       return
     }
@@ -25,18 +24,28 @@ export class StudyRenderer {
     this.isStarted = true
     window.addEventListener('resize', this.resize, { passive: true })
     this.resize()
-    this.animationFrameId = window.requestAnimationFrame(this.render)
+
+    try {
+      await this.renderer.setAnimationLoop(this.render)
+      this.renderer.domElement.dataset.rendererBackend =
+        'isWebGPUBackend' in this.renderer.backend ? 'webgpu' : 'webgl2'
+    } catch (error) {
+      window.removeEventListener('resize', this.resize)
+      this.isStarted = false
+      throw error
+    }
   }
 
   dispose(): void {
-    if (this.animationFrameId !== null) {
-      window.cancelAnimationFrame(this.animationFrameId)
-      this.animationFrameId = null
-    }
-
     window.removeEventListener('resize', this.resize)
     this.isStarted = false
-    this.renderer.dispose()
+
+    if (this.renderer.initialized) {
+      void this.renderer.setAnimationLoop(null)
+      this.renderer.dispose()
+    }
+
+    delete this.renderer.domElement.dataset.rendererBackend
   }
 
   private readonly resize = (): void => {
@@ -48,8 +57,6 @@ export class StudyRenderer {
     if (!this.isStarted) {
       return
     }
-
-    this.animationFrameId = window.requestAnimationFrame(this.render)
 
     const viewport: ViewportSize = {
       width: window.innerWidth,
@@ -68,11 +75,15 @@ export class StudyRenderer {
   }
 }
 
-export function createStandaloneRenderer(canvas: HTMLCanvasElement): THREE.WebGLRenderer {
-  const renderer = new THREE.WebGLRenderer({
+export function createStandaloneRenderer(
+  canvas: HTMLCanvasElement,
+  forceWebGL: boolean,
+): THREE.WebGPURenderer {
+  const renderer = new THREE.WebGPURenderer({
     canvas,
     alpha: true,
     antialias: true,
+    forceWebGL,
   })
   renderer.autoClear = false
   renderer.setClearColor(0x000000, 0)

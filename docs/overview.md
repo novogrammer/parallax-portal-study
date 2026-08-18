@@ -2,7 +2,7 @@
 
 ## 目的
 
-DOM上をスクロールする2つの窓へ独立したThree.js Sceneを表示し、1枚の固定Canvas、単一の `WebGLRenderer`、単一の描画ループで垂直パララックスを検証する。
+DOM上をスクロールする2つの窓へ独立したThree.js Sceneを表示し、1枚の固定Canvas、単一の `WebGPURenderer`、単一の描画ループで垂直パララックスを検証する。WebGPUが利用できない環境では、WebGPURendererのWebGL 2 backendへfallbackする。
 
 Portal Geometry、投影数式、responsive選択、Portal用Camera、scissor描画、Renderer状態復元は、別リポジトリの未公開package [parallax-portal](https://github.com/novogrammer/parallax-portal) を利用する。ライブラリ一般仕様は[package側の文書](https://github.com/novogrammer/parallax-portal/tree/main/docs)を正本とし、この文書では習作への組み込み方だけを扱う。
 
@@ -24,7 +24,7 @@ StudyApp
 └── StudyRenderer
         |
         v
-fixed Canvas / WebGLRenderer / RAF
+fixed Canvas / WebGPURenderer / setAnimationLoop
 ```
 
 依存方向はStudyからpackageへの一方向とする。packageはこの習作のDOM構成、CSS、Scene、設定値、Standalone描画ループを知らない。
@@ -35,7 +35,7 @@ fixed Canvas / WebGLRenderer / RAF
 | --- | --- |
 | `main.ts` | Canvasを取得し、StudyAppを初期化して開始する |
 | `StudyApp.ts` | DOM要素、Scene、設定、PortalRuntime、StudyRendererを組み立てて破棄する |
-| `StudyRenderer.ts` | WebGLRenderer、Canvas resize、DPR上限、全体の透明clear、RAFを所有する |
+| `StudyRenderer.ts` | WebGPURenderer、Canvas resize、DPR上限、全体の透明clear、animation loopを所有する |
 | `studyConfig.ts` | この習作で使うFOV、基準投影高、Camera Y範囲を定義する |
 | `studyScene.ts` | 暖色・寒色の検証Sceneを生成し、所有するGPUリソースを破棄する |
 | `style.scss` | ページ、Portal寸法、コンテンツのレスポンシブレイアウトを定義する |
@@ -84,13 +84,17 @@ Scene rootのpositionとrotationは0、scaleは1を維持し、`1 world unit = 1
 
 `StudyRenderer` は次を所有する。
 
-- `alpha: true`、`antialias: true` の `WebGLRenderer`
+- `alpha: true`、`antialias: true` の `WebGPURenderer`
 - DPR上限 `2`
 - viewportに合わせたRenderer resize
-- requestAnimationFrame
+- `setAnimationLoop()` による非同期初期化と単一描画ループ
 - 各フレーム冒頭のCanvas全体の透明clear
 - 終了時のRenderer破棄
 
-`StudyApp` はSceneを生成して `PortalRuntime` へ貸し出し、終了時はRuntimeを先にdisposeしてから、SceneのGeometryとMaterial、最後にRendererを破棄する。
+`StudyApp` はSceneを生成して `PortalRuntime` へ貸し出す。終了時はStudyRendererがanimation loopを停止してRendererを破棄し、続いてRuntimeのlistenerとSceneのGeometry、Materialを各所有者が解放する。
 
-1フレームではStudyRendererがCanvas全体を透明にclearし、その後 `PortalRuntime.render()` を呼ぶ。PortalごとのCamera計算、scissor、clear、Scene描画とRenderer状態復元はpackage側の責務である。
+`StudyRenderer.start()` は `await renderer.setAnimationLoop()` で初期化と描画開始を行い、終了時は `setAnimationLoop(null)` で停止する。明示的な `renderer.init()` と手動requestAnimationFrameは使わない。
+
+1フレームではStudyRendererがCanvas全体を透明にclearし、その後 `PortalRuntime.render()` を呼ぶ。PortalごとのCamera計算、WebGPU左上原点のscissor、clear、Scene描画とRenderer状態復元はpackage側の責務である。
+
+通常URLではWebGPU backendを試し、利用できなければ自動fallbackする。`?forceWebGL=1` を付けた場合は、表示比較のためWebGL 2 backendを強制する。このqueryはStudy固有であり、package APIには含めない。

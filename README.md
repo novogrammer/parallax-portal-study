@@ -2,7 +2,7 @@
 
 パララックスポータルの習作
 
-1枚の固定Canvasに、複数のThree.js Sceneをscissor描画する検証プロジェクトです。
+1枚の固定Canvasに、WebGPURendererで複数のThree.js Sceneをscissor描画する検証プロジェクトです。
 
 [parallax-portal](https://github.com/novogrammer/parallax-portal) をGitHub dependencyとして利用しています。
 
@@ -18,3 +18,5 @@
 npm install
 npm run dev
 ```
+
+`http://localhost:5173/?forceWebGL=1` では、WebGPURendererのWebGL 2 backendを強制して確認できます。
