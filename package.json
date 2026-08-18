@@ -16,7 +16,7 @@
     "vite": "^8.2.0"
   },
   "dependencies": {
-    "parallax-portal": "github:novogrammer/parallax-portal#b36ff847faf7327bc04ce8824ed4ee0436aa1a10",
+    "parallax-portal": "github:novogrammer/parallax-portal#b2ad0e0c02579baef102871d68ef811f9af2df2a",
     "three": "^0.185.1"
   }
 }
