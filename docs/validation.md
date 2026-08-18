@@ -39,6 +39,9 @@
 | 条件付きProjectionから `otherwise` へ戻る | `otherwise` が指定するProjection Profileへ戻る |
 | Runtimeを破棄 | 登録したMedia Queryの変更listenerが解除される |
 | Camera Yが移動 | Camera Xは `0m`、Camera Zは基準Camera距離、向きは負のZ方向に維持される |
+| Camera near / farを省略 | `near = 0.1`、`far = 1000` でPortal用Cameraを生成する |
+| PortalごとにCamera near / farを指定 | そのPortal用Cameraだけへ指定値を適用する |
+| Camera near / farが不正 | Runtime生成時に設定例外を投げて処理を終了する |
 | 設定値から不正なFOVが導出される | Runtime生成時に設定例外を投げて処理を終了する |
 | 実行時入力から一時的に不正なFOVが導出される | Cameraを部分更新せず、前回の正常状態全体を維持する |
 | 初回から実行時FOVが不正 | 対象Portalを描画しない |
@@ -50,7 +53,8 @@
 
 WebGL基準実装では次の値と処理を採用する。これらはPortal Geometryの一般式ではなく、Runtime、Projection Profile、Scene、Page / UIの設定値である。
 
-- Cameraの `near` は `0.1`、`far` は `100`
+- Cameraの `near` は `0.1`、`far` は `1000`
+- Sceneの奥行きに応じてPortalごとに `cameraNear` と `cameraFar` を指定できる
 - DPR上限は `2`
 - responsive breakpointは `(min-width: 768px)`
 - Wide Profileは基準FOV `42deg`、Narrow Profileは基準FOV `50deg`

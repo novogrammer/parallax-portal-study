@@ -27,6 +27,27 @@ interface CameraState {
   aspect: number
 }
 
+const DEFAULT_CAMERA_NEAR = 0.1
+const DEFAULT_CAMERA_FAR = 1000
+
+function resolveCameraClippingPlanes(definition: PortalDefinition): {
+  near: number
+  far: number
+} {
+  const near = definition.cameraNear ?? DEFAULT_CAMERA_NEAR
+  const far = definition.cameraFar ?? DEFAULT_CAMERA_FAR
+
+  if (!Number.isFinite(near) || near <= 0) {
+    throw new RangeError('cameraNear must be a finite value greater than 0.')
+  }
+
+  if (!Number.isFinite(far) || far <= near) {
+    throw new RangeError('cameraFar must be finite and greater than cameraNear.')
+  }
+
+  return { near, far }
+}
+
 export class PortalInstance {
   private readonly definition: PortalDefinition
   private readonly referenceProjectionHeightMeters: number
@@ -40,10 +61,12 @@ export class PortalInstance {
     referenceProjectionHeightMeters: number,
     initialProjection: ProjectionProfile,
   ) {
+    const { near, far } = resolveCameraClippingPlanes(definition)
+
     this.definition = definition
     this.referenceProjectionHeightMeters = referenceProjectionHeightMeters
     this.activeProjection = initialProjection
-    this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100)
+    this.camera = new THREE.PerspectiveCamera(42, 1, near, far)
     this.camera.position.set(0, 0, 1)
     this.camera.rotation.set(0, 0, 0)
   }

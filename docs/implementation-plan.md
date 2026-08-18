@@ -30,6 +30,7 @@ WebGLRendererで、垂直投影、スクロール連動Camera、2つのPortalの
 
 - 共有する1枚の透明な固定Canvasと、Portalごとに独立したSceneとCamera
 - Runtime共通基準投影高、responsive Projection Profile、PortalごとのScene Configuration
+- Portalごとに任意指定できるCamera near / farと、未指定時の共通デフォルト
 - full Portal rectによるCamera Y、Camera距離、Render Camera FOVの導出
 - Portalとviewportの交差矩形によるscissor、Portal単位のclearとrender
 - resize、Camera aspect、DPR上限、常時requestAnimationFrame

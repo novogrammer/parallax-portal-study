@@ -18,6 +18,8 @@ export interface PortalDefinition extends SceneConfiguration {
   element: HTMLElement
   scene: THREE.Scene
   clearColor: THREE.ColorRepresentation
+  cameraNear?: number
+  cameraFar?: number
 }
 
 export interface PortalRuntimeOptions {

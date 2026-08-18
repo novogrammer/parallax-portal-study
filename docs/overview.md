@@ -128,10 +128,14 @@ PortalDefinition
 ├── scene
 ├── clearColor
 ├── cameraTopY
-└── cameraBottomY
+├── cameraBottomY
+├── cameraNear（任意）
+└── cameraFar（任意）
 ```
 
 RendererとSceneはホストから借り、Runtimeは生成も破棄もしない。Runtimeが生成するPortal用CameraとMedia Query listenerだけをRuntime自身が管理する。
+
+`cameraNear` と `cameraFar` はSceneに必要なクリップ範囲をPortalごとに指定する。省略時はそれぞれ `0.1` と `1000` を使い、responsive条件では切り替えない。
 
 `renderCameraFovY`、Camera Y移動高、Camera距離、スクロール進行値は設定として保持せず、実行時に導出する。
 
@@ -172,6 +176,8 @@ const portalRuntime = new PortalRuntime({
       clearColor,
       cameraTopY,
       cameraBottomY,
+      cameraNear,
+      cameraFar,
     },
   ],
 })
