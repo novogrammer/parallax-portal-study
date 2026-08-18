@@ -108,15 +108,14 @@ ProjectionProfile
 viewport条件に応じてRuntime全体へ適用するProjection Profileを選択する。
 
 ```text
-ResponsiveProjectionConfiguration
-├── rules[]
-│   ├── query
-│   └── referenceFovY
-└── otherwise
+ProjectionConfiguration
+├── referenceFovY
+└── rules[]（任意）
+    ├── query
     └── referenceFovY
 ```
 
-`query` は `window.matchMedia()` へ渡すMedia Query文字列とする。`rules` を上から評価して最初に一致したProjectionを選び、どの条件にも一致しない場合は必須の `otherwise` を選ぶ。選択結果は全Portalへ同時に適用する。
+設定直下の `referenceFovY` を基準値とする。`rules` を指定した場合は、`query` を `window.matchMedia()` へ渡して上から評価し、最初に一致したProjectionを選ぶ。どの条件にも一致しない場合と `rules` を省略した場合は基準値を使う。選択結果は全Portalへ同時に適用する。
 
 ### Portal Definition
 

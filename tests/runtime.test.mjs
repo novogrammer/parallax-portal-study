@@ -5,10 +5,7 @@ import { PortalRuntime } from '../src/lib/parallax-portal/index.ts'
 import { PortalInstance } from '../src/lib/parallax-portal/PortalInstance.ts'
 
 const projection = {
-  rules: [],
-  otherwise: {
-    referenceFovY: THREE.MathUtils.degToRad(42),
-  },
+  referenceFovY: THREE.MathUtils.degToRad(42),
 }
 
 function createRuntime(camera = {}) {
@@ -55,7 +52,7 @@ test('camera clipping plane defaults are applied to the generated camera', () =>
       cameraBottomY: 0,
     },
     3,
-    projection.otherwise,
+    projection,
   )
 
   const renderData = portal.getRenderData({ width: 100, height: 100 })

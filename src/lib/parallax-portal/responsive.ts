@@ -1,19 +1,20 @@
 import type {
+  ProjectionConfiguration,
   ProjectionProfile,
-  ResponsiveProjectionRule,
 } from './types.ts'
 
 export function selectResponsiveProjection(
-  rules: readonly ResponsiveProjectionRule[],
+  configuration: ProjectionConfiguration,
   matches: readonly boolean[],
-  otherwise: ProjectionProfile,
 ): ProjectionProfile {
+  const rules = configuration.rules ?? []
+
   if (rules.length !== matches.length) {
     throw new RangeError('rules and matches must have the same length.')
   }
 
   const matchedIndex = matches.findIndex(Boolean)
-  const selected = matchedIndex === -1 ? otherwise : rules[matchedIndex]
+  const selected = matchedIndex === -1 ? configuration : rules[matchedIndex]
 
   return { referenceFovY: selected.referenceFovY }
 }

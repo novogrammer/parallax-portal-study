@@ -20,9 +20,9 @@ export type {
 } from './PortalRuntime.ts'
 export type {
   PortalGeometryResult,
+  ProjectionConfiguration,
   ProjectionProfile,
   Rect,
-  ResponsiveProjectionConfiguration,
   ResponsiveProjectionRule,
   SceneConfiguration,
   ViewportSize,

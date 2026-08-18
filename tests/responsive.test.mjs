@@ -13,26 +13,36 @@ const rules = [
   },
 ]
 
-const otherwise = { referenceFovY: 0.9 }
+const configuration = {
+  referenceFovY: 0.9,
+  rules,
+}
+
+test('projection configuration works without responsive rules', () => {
+  assert.deepEqual(
+    selectResponsiveProjection({ referenceFovY: 0.75 }, []),
+    { referenceFovY: 0.75 },
+  )
+})
 
 test('responsive projection uses the first matching rule', () => {
   assert.deepEqual(
-    selectResponsiveProjection(rules, [true, true], otherwise),
+    selectResponsiveProjection(configuration, [true, true]),
     { referenceFovY: 0.7 },
   )
   assert.deepEqual(
-    selectResponsiveProjection(rules, [false, true], otherwise),
+    selectResponsiveProjection(configuration, [false, true]),
     { referenceFovY: 0.8 },
   )
 })
 
-test('responsive projection falls back to otherwise', () => {
+test('responsive projection falls back to the base profile', () => {
   assert.deepEqual(
-    selectResponsiveProjection(rules, [false, false], otherwise),
-    otherwise,
+    selectResponsiveProjection(configuration, [false, false]),
+    { referenceFovY: configuration.referenceFovY },
   )
 })
 
 test('responsive projection rejects a mismatched match list', () => {
-  assert.throws(() => selectResponsiveProjection(rules, [true], otherwise), RangeError)
+  assert.throws(() => selectResponsiveProjection(configuration, [true]), RangeError)
 })

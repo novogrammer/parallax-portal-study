@@ -23,9 +23,8 @@ export interface ResponsiveProjectionRule extends ProjectionProfile {
   query: string
 }
 
-export interface ResponsiveProjectionConfiguration {
-  rules: readonly ResponsiveProjectionRule[]
-  otherwise: ProjectionProfile
+export interface ProjectionConfiguration extends ProjectionProfile {
+  rules?: readonly ResponsiveProjectionRule[]
 }
 
 export interface WebGlScissorRect {

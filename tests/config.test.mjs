@@ -12,7 +12,7 @@ test('wide and narrow viewing conditions use different shared FOVs', () => {
   assert.equal(projectionConfiguration.rules[0].query, '(min-width: 768px)')
   assert.notEqual(
     projectionConfiguration.rules[0].referenceFovY,
-    projectionConfiguration.otherwise.referenceFovY,
+    projectionConfiguration.referenceFovY,
   )
 })
 

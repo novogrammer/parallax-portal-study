@@ -34,9 +34,9 @@
 | Portalがないフレーム | requestAnimationFrame自体は継続する |
 | Portalが左右に寄る | Camera Xは固定され、Canvas上の対応領域がscissorされる |
 | 複数のMedia Queryが一致 | `rules` の上から最初に一致したProjectionだけが選ばれる |
-| どのMedia Queryにも一致しない | 必須の `otherwise` Projectionが選ばれる |
+| どのMedia Queryにも一致しない | 設定直下の基準Projectionが選ばれる |
 | viewport条件が切り替わる | 選択されたProjection Profileが適用される |
-| 条件付きProjectionから `otherwise` へ戻る | `otherwise` が指定するProjection Profileへ戻る |
+| 条件付きProjectionから基準値へ戻る | 設定直下のProjection Profileへ戻る |
 | Runtimeを破棄 | 登録したMedia Queryの変更listenerが解除される |
 | Camera Yが移動 | Camera Xは `0m`、Camera Zは基準Camera距離、向きは負のZ方向に維持される |
 | Camera near / farを省略 | `near = 0.1`、`far = 1000` でPortal用Cameraを生成する |

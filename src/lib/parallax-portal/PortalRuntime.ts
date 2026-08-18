@@ -5,8 +5,8 @@ import {
   validateSceneConfiguration,
 } from './geometry.ts'
 import type {
+  ProjectionConfiguration,
   ProjectionProfile,
-  ResponsiveProjectionConfiguration,
   SceneConfiguration,
   ViewportSize,
 } from './types.ts'
@@ -24,13 +24,13 @@ export interface PortalDefinition extends SceneConfiguration {
 
 export interface PortalRuntimeOptions {
   renderer: THREE.WebGLRenderer
-  projection: ResponsiveProjectionConfiguration
+  projection: ProjectionConfiguration
   referenceProjectionHeightMeters: number
   portals: readonly PortalDefinition[]
 }
 
 export class PortalRuntime {
-  private readonly projection: ResponsiveProjectionConfiguration
+  private readonly projection: ProjectionConfiguration
   private mediaQueries: readonly MediaQueryList[] = []
   private currentProjection: ProjectionProfile
   private portals: PortalInstance[] = []
@@ -38,13 +38,15 @@ export class PortalRuntime {
 
   constructor(options: PortalRuntimeOptions) {
     validateReferenceProjectionHeight(options.referenceProjectionHeightMeters)
-    options.projection.rules.forEach(validateProjectionProfile)
-    validateProjectionProfile(options.projection.otherwise)
+    validateProjectionProfile(options.projection)
+    options.projection.rules?.forEach(validateProjectionProfile)
     options.portals.forEach(validateSceneConfiguration)
 
     this.projection = options.projection
-    this.currentProjection = options.projection.otherwise
-    this.mediaQueries = options.projection.rules.map(({ query }) => window.matchMedia(query))
+    this.currentProjection = { referenceFovY: options.projection.referenceFovY }
+    this.mediaQueries = (options.projection.rules ?? []).map(
+      ({ query }) => window.matchMedia(query),
+    )
 
     try {
       this.currentProjection = this.selectCurrentProjection()
@@ -84,9 +86,8 @@ export class PortalRuntime {
 
   private selectCurrentProjection(): ProjectionProfile {
     return selectResponsiveProjection(
-      this.projection.rules,
+      this.projection,
       this.mediaQueries.map(({ matches }) => matches),
-      this.projection.otherwise,
     )
   }
 
