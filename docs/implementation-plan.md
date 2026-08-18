@@ -9,7 +9,7 @@ Portal Runtime、Geometry、投影数式の正本は、別リポジトリの[par
 | 段階 | 状態 |
 | --- | --- |
 | 第1段階: WebGL基準実装 | 完了 |
-| 第2段階: WebGPU移行検証 | 進行中 |
+| 第2段階: WebGPU移行検証 | 完了 |
 
 ## 共通方針
 
@@ -70,7 +70,3 @@ WebGPU専用compute、TSL、独自Material、ポストプロセス、WebGL版に
 - WebGPU backendとWebGL 2 fallbackの双方で基本機能が成立する。
 - 型検査、本番ビルド、Chromeでの表示確認が成功する。
 - packageとStudyの責務境界が文書化されている。
-
-## 未決事項
-
-- WebGPU版のブラウザ検証後、packageとStudyをmainへマージするか
