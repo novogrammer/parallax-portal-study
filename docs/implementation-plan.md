@@ -11,9 +11,11 @@ WebGL基準実装を比較基準として、同じPortal体験をWebGPUへ移行
 
 ## 共通方針
 
-- 状態とライフサイクルはクラス、幾何計算とVariant選択は純粋関数で表現する。
+- 状態とライフサイクルはクラス、幾何計算とresponsive Projection選択は純粋関数で表現する。
 - 型、Portal Geometry、responsive選択処理は `src/lib/parallax-portal/` のリポジトリ内Coreへ配置し、利用側は `index.ts` を入口としてRuntimeから一方向に依存する。
 - RuntimeはStandalone所有と既存WebGLRendererを借りるEmbedded利用を分離し、共通のPortal Render Passを使う。
+- Embedded Runtimeは共通ProjectionとPortalごとのDOM要素、Scene、Camera範囲を直接受け取り、参照IDやScene factoryを介さない。
+- RendererとSceneは借用し、Runtime自身が登録したlistenerだけを破棄する。
 - Portal GeometryへDOM型、Three.js型、Scene固有値を持ち込まない。
 - Scene生成と描画制御を分離する。
 - 参照実装の固有名称、Scene構成、責務集中を引き継がない。
@@ -26,12 +28,12 @@ WebGLRendererで、垂直投影、スクロール連動Camera、2つのPortalの
 ### 実装範囲
 
 - 共有する1枚の透明な固定Canvasと、Portalごとに独立したSceneとCamera
-- App共通基準投影高、responsive Projection Profile、Scene Configuration
+- Runtime共通基準投影高、responsive Projection Profile、PortalごとのScene Configuration
 - full Portal rectによるCamera Y、Camera距離、Render Camera FOVの導出
 - Portalとviewportの交差矩形によるscissor、Portal単位のclearとrender
 - resize、Camera aspect、DPR上限、常時requestAnimationFrame
 - 初期化時の設定検証、実行時不正値に対するCamera状態維持
-- Runtime、Media Query listener、Three.jsリソースの破棄
+- RuntimeのMedia Query listenerと、Standaloneが所有するThree.jsリソースの破棄
 - 描画やブラウザAPIに依存しないPortal Coreと、`matchMedia()`を所有するRuntime Controllerの分離
 - 画面全体の既存Canvas、単一Renderer、単一RAFへ追加できるEmbedded RuntimeとRenderer状態復元
 - 純粋関数の単体テストとChromeでの表示確認
@@ -63,7 +65,7 @@ WebGPU専用compute、TSL、独自Material、ポストプロセス、WebGL版に
 ### 完了条件
 
 - 同じ入力からWebGL版と同等のCamera位置、投影、scissor、透明領域を得られる。
-- スクロール、resize、Variant切り替えの連続性を保てる。
+- スクロール、resize、responsive Projection切り替えの連続性を保てる。
 - WebGPU backendとWebGL 2 fallbackの双方で基本機能が成立する。
 - 型検査、本番ビルド、Chromeでの表示確認が成功する。
 - 不要になったWebGL固有処理が残っていない。

@@ -1,6 +1,5 @@
 import type {
-  PortalConfiguration,
-  ProjectionProfile,
+  ResponsiveProjectionConfiguration,
   SceneConfiguration,
 } from '../lib/parallax-portal/index.ts'
 
@@ -8,55 +7,24 @@ const degreesToRadians = (degrees: number): number => degrees * Math.PI / 180
 
 export const referenceProjectionHeightMeters = 3
 
-export const projectionProfiles: readonly ProjectionProfile[] = [
-  {
-    profileId: 'wide',
-    referenceFovY: degreesToRadians(42),
-  },
-  {
-    profileId: 'narrow',
+export const projectionConfiguration: ResponsiveProjectionConfiguration = {
+  rules: [
+    {
+      query: '(min-width: 768px)',
+      referenceFovY: degreesToRadians(42),
+    },
+  ],
+  otherwise: {
     referenceFovY: degreesToRadians(50),
   },
-]
+}
 
-export const sceneConfigurations: readonly SceneConfiguration[] = [
-  {
-    sceneId: 'warm-boxes',
-    cameraTopY: 7.5,
-    cameraBottomY: 0,
-  },
-  {
-    sceneId: 'cool-orbits',
-    cameraTopY: 3,
-    cameraBottomY: 0,
-  },
-]
+export const warmSceneConfiguration: SceneConfiguration = {
+  cameraTopY: 7.5,
+  cameraBottomY: 0,
+}
 
-export const portalConfigurations: readonly PortalConfiguration[] = [
-  {
-    portalId: 'warm-depth',
-    sceneId: 'warm-boxes',
-    responsiveVariants: {
-      rules: [
-        {
-          query: '(min-width: 768px)',
-          variant: { projectionProfileId: 'wide' },
-        },
-      ],
-      otherwise: { projectionProfileId: 'narrow' },
-    },
-  },
-  {
-    portalId: 'cool-depth',
-    sceneId: 'cool-orbits',
-    responsiveVariants: {
-      rules: [
-        {
-          query: '(min-width: 768px)',
-          variant: { projectionProfileId: 'wide' },
-        },
-      ],
-      otherwise: { projectionProfileId: 'narrow' },
-    },
-  },
-]
+export const coolSceneConfiguration: SceneConfiguration = {
+  cameraTopY: 3,
+  cameraBottomY: 0,
+}

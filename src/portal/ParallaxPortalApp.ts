@@ -1,22 +1,36 @@
-import type {
-  PortalConfiguration,
-  ProjectionProfile,
-  SceneConfiguration,
-} from '../lib/parallax-portal/index.ts'
 import { createStandaloneRenderer, PortalRenderer } from './PortalRenderer.ts'
 import { PortalRuntime } from './PortalRuntime.ts'
-import { createStudyScene } from './studyScene.ts'
+import {
+  coolSceneConfiguration,
+  projectionConfiguration,
+  referenceProjectionHeightMeters,
+  warmSceneConfiguration,
+} from './config.ts'
+import {
+  createCoolStudyScene,
+  createWarmStudyScene,
+} from './studyScene.ts'
+import type { StudySceneBundle } from './studyScene.ts'
 
 export interface ParallaxPortalAppOptions {
   canvas: HTMLCanvasElement
-  configurations: readonly PortalConfiguration[]
-  profiles: readonly ProjectionProfile[]
-  referenceProjectionHeightMeters: number
-  sceneConfigurations: readonly SceneConfiguration[]
+}
+
+function requirePortalElement(portalId: string): HTMLElement {
+  const element = document.querySelector<HTMLElement>(
+    `[data-portal-id="${CSS.escape(portalId)}"]`,
+  )
+
+  if (!element) {
+    throw new Error(`Portal element "${portalId}" was not found.`)
+  }
+
+  return element
 }
 
 export class ParallaxPortalApp {
   private readonly options: ParallaxPortalAppOptions
+  private sceneBundles: StudySceneBundle[] = []
   private runtime: PortalRuntime | null = null
   private renderer: PortalRenderer | null = null
   private isInitialized = false
@@ -30,23 +44,45 @@ export class ParallaxPortalApp {
       return
     }
 
+    const warmElement = requirePortalElement('warm-depth')
+    const coolElement = requirePortalElement('cool-depth')
     const webGlRenderer = createStandaloneRenderer(this.options.canvas)
-    const runtime = new PortalRuntime({
-      renderer: webGlRenderer,
-      configurations: this.options.configurations,
-      profiles: this.options.profiles,
-      referenceProjectionHeightMeters: this.options.referenceProjectionHeightMeters,
-      sceneConfigurations: this.options.sceneConfigurations,
-      createScene: createStudyScene,
-    })
+    const sceneBundles: StudySceneBundle[] = []
+    let runtime: PortalRuntime | null = null
 
     try {
-      runtime.initialize()
+      const warmScene = createWarmStudyScene(warmSceneConfiguration)
+      sceneBundles.push(warmScene)
+      const coolScene = createCoolStudyScene(coolSceneConfiguration)
+      sceneBundles.push(coolScene)
+
+      runtime = new PortalRuntime({
+        renderer: webGlRenderer,
+        projection: projectionConfiguration,
+        referenceProjectionHeightMeters,
+        portals: [
+          {
+            element: warmElement,
+            scene: warmScene.scene,
+            clearColor: warmScene.clearColor,
+            ...warmSceneConfiguration,
+          },
+          {
+            element: coolElement,
+            scene: coolScene.scene,
+            clearColor: coolScene.clearColor,
+            ...coolSceneConfiguration,
+          },
+        ],
+      })
+
+      this.sceneBundles = sceneBundles
       this.runtime = runtime
       this.renderer = new PortalRenderer(webGlRenderer, runtime)
       this.isInitialized = true
     } catch (error) {
-      runtime.dispose()
+      runtime?.dispose()
+      sceneBundles.forEach((sceneBundle) => sceneBundle.dispose())
       webGlRenderer.dispose()
       throw error
     }
@@ -65,8 +101,10 @@ export class ParallaxPortalApp {
     window.removeEventListener('pagehide', this.handlePageHide)
     this.renderer?.dispose()
     this.runtime?.dispose()
+    this.sceneBundles.forEach((sceneBundle) => sceneBundle.dispose())
     this.renderer = null
     this.runtime = null
+    this.sceneBundles = []
     this.isInitialized = false
   }
 

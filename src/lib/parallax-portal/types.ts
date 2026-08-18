@@ -11,32 +11,21 @@ export interface ViewportSize {
 }
 
 export interface ProjectionProfile {
-  profileId: string
   referenceFovY: number
 }
 
 export interface SceneConfiguration {
-  sceneId: string
   cameraTopY: number
   cameraBottomY: number
 }
 
-export interface ResponsiveVariant {
-  projectionProfileId: string
-}
-
-export interface ResponsiveRule {
+export interface ResponsiveProjectionRule extends ProjectionProfile {
   query: string
-  variant: ResponsiveVariant
 }
 
-export interface PortalConfiguration {
-  portalId: string
-  sceneId: string
-  responsiveVariants: {
-    rules: readonly ResponsiveRule[]
-    otherwise: ResponsiveVariant
-  }
+export interface ResponsiveProjectionConfiguration {
+  rules: readonly ResponsiveProjectionRule[]
+  otherwise: ProjectionProfile
 }
 
 export interface WebGlScissorRect {

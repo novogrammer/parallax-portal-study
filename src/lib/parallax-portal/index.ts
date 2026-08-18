@@ -11,17 +11,14 @@ export {
   validateSceneConfiguration,
 } from './geometry.ts'
 export {
-  listConfiguredVariants,
-  selectResponsiveVariant,
-  validateProjectionProfileReferences,
+  selectResponsiveProjection,
 } from './responsive.ts'
 export type {
-  PortalConfiguration,
   PortalGeometryResult,
   ProjectionProfile,
   Rect,
-  ResponsiveRule,
-  ResponsiveVariant,
+  ResponsiveProjectionConfiguration,
+  ResponsiveProjectionRule,
   SceneConfiguration,
   ViewportSize,
   WebGlScissorRect,

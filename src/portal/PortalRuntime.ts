@@ -1,142 +1,80 @@
 import type * as THREE from 'three'
 import {
   validateProjectionProfile,
-  validateProjectionProfileReferences,
   validateReferenceProjectionHeight,
   validateSceneConfiguration,
 } from '../lib/parallax-portal/index.ts'
 import type {
-  PortalConfiguration,
   ProjectionProfile,
-  SceneConfiguration,
+  ResponsiveProjectionConfiguration,
   ViewportSize,
 } from '../lib/parallax-portal/index.ts'
 import { PortalInstance } from './PortalInstance.ts'
-import type { PortalSceneBundle } from './PortalInstance.ts'
+import type { PortalDefinition } from './PortalInstance.ts'
 import { PortalRenderPass } from './PortalRenderPass.ts'
+import { ResponsiveProjectionController } from './ResponsiveProjectionController.ts'
 
-export type PortalSceneFactory = (sceneConfiguration: SceneConfiguration) => PortalSceneBundle
+export type { PortalDefinition } from './PortalInstance.ts'
 
 export interface PortalRuntimeOptions {
   renderer: THREE.WebGLRenderer
-  configurations: readonly PortalConfiguration[]
-  profiles: readonly ProjectionProfile[]
+  projection: ResponsiveProjectionConfiguration
   referenceProjectionHeightMeters: number
-  sceneConfigurations: readonly SceneConfiguration[]
-  createScene: PortalSceneFactory
-}
-
-function createUniqueMap<T>(items: readonly T[], getId: (item: T) => string, label: string): Map<string, T> {
-  const map = new Map<string, T>()
-
-  for (const item of items) {
-    const id = getId(item)
-
-    if (map.has(id)) {
-      throw new Error(`Duplicate ${label}: ${id}`)
-    }
-
-    map.set(id, item)
-  }
-
-  return map
+  portals: readonly PortalDefinition[]
 }
 
 export class PortalRuntime {
-  private readonly options: PortalRuntimeOptions
   private portals: PortalInstance[] = []
   private renderPass: PortalRenderPass | null = null
-  private isInitialized = false
+  private responsiveController: ResponsiveProjectionController | null = null
 
   constructor(options: PortalRuntimeOptions) {
-    this.options = options
-  }
+    validateReferenceProjectionHeight(options.referenceProjectionHeightMeters)
+    options.projection.rules.forEach(validateProjectionProfile)
+    validateProjectionProfile(options.projection.otherwise)
+    options.portals.forEach(validateSceneConfiguration)
 
-  initialize(): void {
-    if (this.isInitialized) {
-      return
-    }
-
-    const profiles = createUniqueMap(this.options.profiles, ({ profileId }) => profileId, 'profileId')
-    const sceneConfigurations = createUniqueMap(
-      this.options.sceneConfigurations,
-      ({ sceneId }) => sceneId,
-      'sceneId',
+    const responsiveController = new ResponsiveProjectionController(
+      options.projection,
+      this.applyProjection,
     )
-    const portalIds = new Set<string>()
-
-    profiles.forEach(validateProjectionProfile)
-    validateReferenceProjectionHeight(this.options.referenceProjectionHeightMeters)
-    sceneConfigurations.forEach(validateSceneConfiguration)
-
-    const portals: PortalInstance[] = []
 
     try {
-      for (const configuration of this.options.configurations) {
-        if (portalIds.has(configuration.portalId)) {
-          throw new Error(`Duplicate portalId: ${configuration.portalId}`)
-        }
-        portalIds.add(configuration.portalId)
-
-        validateProjectionProfileReferences(configuration, profiles)
-
-        const sceneConfiguration = sceneConfigurations.get(configuration.sceneId)
-
-        if (!sceneConfiguration) {
-          throw new Error(
-            `Portal "${configuration.portalId}" references unknown scene "${configuration.sceneId}".`,
-          )
-        }
-
-        const element = document.querySelector<HTMLElement>(
-          `[data-portal-id="${CSS.escape(configuration.portalId)}"]`,
-        )
-
-        if (!element) {
-          throw new Error(`Portal element "${configuration.portalId}" was not found.`)
-        }
-
-        const sceneBundle = this.options.createScene(sceneConfiguration)
-
-        try {
-          portals.push(
-            new PortalInstance(
-              configuration,
-              element,
-              profiles,
-              sceneConfiguration,
-              this.options.referenceProjectionHeightMeters,
-              sceneBundle,
-            ),
-          )
-        } catch (error) {
-          sceneBundle.dispose()
-          throw error
-        }
-      }
-
-      this.portals = portals
-      this.renderPass = new PortalRenderPass(this.options.renderer, this.portals)
-      this.isInitialized = true
+      const initialProjection = responsiveController.getCurrentProjection()
+      this.portals = options.portals.map(
+        (definition) => new PortalInstance(
+          definition,
+          options.referenceProjectionHeightMeters,
+          initialProjection,
+        ),
+      )
+      this.renderPass = new PortalRenderPass(options.renderer, this.portals)
+      this.responsiveController = responsiveController
     } catch (error) {
-      portals.forEach((portal) => portal.dispose())
+      responsiveController.dispose()
       this.portals = []
       throw error
     }
   }
 
   render(viewport: ViewportSize): void {
-    if (!this.isInitialized || !this.renderPass) {
-      throw new Error('PortalRuntime must be initialized before render().')
+    if (!this.renderPass) {
+      throw new Error('PortalRuntime cannot render after dispose().')
     }
 
     this.renderPass.render(viewport)
   }
 
   dispose(): void {
-    this.portals.forEach((portal) => portal.dispose())
+    this.responsiveController?.dispose()
+    this.responsiveController = null
     this.portals = []
     this.renderPass = null
-    this.isInitialized = false
+  }
+
+  private readonly applyProjection = (projection: ProjectionProfile): void => {
+    for (const portal of this.portals) {
+      portal.setProjection(projection)
+    }
   }
 }

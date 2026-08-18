@@ -22,14 +22,14 @@ Portal Core / Geometry <--- Projection Profile
         |
         +---------- Scene Configuration
         |
-        +---------- App共通のreferenceProjectionHeightMeters
+        +---------- Runtime共通のreferenceProjectionHeightMeters
     |
     | Camera position, projection, scissor rect
     v
 Portal Runtime ---> PortalRenderer ---> position: fixed Canvas ---> Scene
 ```
 
-`src/lib/parallax-portal/` にリポジトリ内で再利用するPortal Coreを配置する。Coreは型、Portal Geometry、responsive Variantの純粋な選択と設定参照検証を提供し、DOM、Three.js、ブラウザAPI、Scene固有値には依存しない。`src/portal/` のRuntimeと習作固有設定はCoreへ依存し、逆方向の依存は持たない。利用側は `index.ts` を入口とし、Core内部だけが各モジュールを直接importする。この入口はリポジトリ内の利用境界であり、独立パッケージであることを意味しない。
+`src/lib/parallax-portal/` にリポジトリ内で再利用するPortal Coreを配置する。Coreは型、Portal Geometry、responsive Projectionの純粋な選択を提供し、DOM、Three.js、ブラウザAPI、Scene固有値には依存しない。`src/portal/` のRuntimeと習作固有設定はCoreへ依存し、逆方向の依存は持たない。利用側は `index.ts` を入口とし、Core内部だけが各モジュールを直接importする。この入口はリポジトリ内の利用境界であり、独立パッケージであることを意味しない。
 
 Runtimeには2つの利用形態がある。Standaloneの `ParallaxPortalApp` はRenderer、viewport resize、RAF、Canvas全体の透明clearを所有する。Embeddedの `PortalRuntime` は既存の `WebGLRenderer` を借り、ホスト側のRAFから1フレーム分の `render(viewport)` を呼び出して使う。EmbeddedではRendererの生成、寸法変更、全体clear、RAF、Rendererの破棄を行わない。
 
@@ -37,8 +37,9 @@ Runtimeには2つの利用形態がある。Standaloneの `ParallaxPortalApp` �
 - Portalとviewportの交差矩形はscissorだけに使う。
 - WebGL viewportは常にCanvas全体とし、Portalごとに変更しない。
 - 部分表示時もCameraと構図を切り替えず、描画範囲だけを狭める。
-- 複数Portalはそれぞれ独立したSceneとCameraを持ち、`sceneId` に対応するScene Configurationと、閲覧条件に応じたProjection Profileを受け取る。
-- SceneインスタンスはPortalごとに生成し、同じ `sceneId` でも共有しない。
+- 複数Portalはそれぞれ独立したCameraを持ち、DOM要素、Scene、Scene Configurationを直接受け取る。
+- responsive ProjectionはRuntime全体で1つを共有し、Sceneごとには変更しない。
+- SceneをPortal間で共有するか個別に生成するかは、Sceneを渡すホスト側が決める。
 - Camera Xは `0m` に固定し、左右に寄ったPortalもCanvas全体への投影をscissorで切り取る。
 - Canvasは透明とし、Portal以外の領域では背面のDOMを表示する。
 - Portal同士は重ならないようにPage / UIで配置し、描画順による重なり規則は設けない。
@@ -75,11 +76,10 @@ TypeScriptコードから生成するThree.jsの3Dコンテンツ。長さはm�
 
 ### Scene Configuration
 
-Sceneを垂直方向にどの範囲で観測するかを定義する。Cameraの具体的な状態ではなく、Sceneの基準的な見せ方としてScene IDに結び付ける。
+Sceneを垂直方向にどの範囲で観測するかを定義し、SceneとともにPortalへ直接渡す。
 
 ```text
 SceneConfiguration
-├── sceneId
 ├── cameraTopY
 └── cameraBottomY
 ```
@@ -88,9 +88,9 @@ SceneConfiguration
 
 PortalのCSS高とCamera Yの移動範囲は、それぞれPage / UIとScene Configurationが所有するデザイン入力である。両者の比率をPortal間で揃えるかどうかはデザイン判断とし、Portal Geometryは比率を統一または補正しない。
 
-### App共通基準投影高
+### Runtime共通基準投影高
 
-`referenceProjectionHeightMeters` はProjection Profileの `referenceFovY` と組み合わせて基準Camera距離を導出する、投影キャリブレーション上の高さである。1つのParallaxPortalAppが管理するPortal群で共有し、Sceneやviewport条件によって変更しない。各フレームで実際に描画される垂直範囲そのものではない。
+`referenceProjectionHeightMeters` はProjection Profileの `referenceFovY` と組み合わせて基準Camera距離を導出する、投影キャリブレーション上の高さである。1つのPortalRuntimeが管理するPortal群で共有し、Sceneやviewport条件によって変更しない。各フレームで実際に描画される垂直範囲そのものではない。
 
 ### Projection Profile
 
@@ -98,32 +98,38 @@ PCやスマートフォンなど、観測者の閲覧条件に応じた基準FOV
 
 ```text
 ProjectionProfile
-├── profileId
 └── referenceFovY
 ```
 
-### Portal Configuration
+### Responsive Projection
 
-DOM窓とSceneを関連付け、viewport条件に応じてProjection Profileを選択する。
+viewport条件に応じてRuntime全体へ適用するProjection Profileを選択する。
 
 ```text
-PortalConfiguration
-├── portalId
-├── sceneId
-└── responsiveVariants
-    ├── rules[]
-    │   ├── query
-    │   └── variant
-    │       └── projectionProfileId
-    └── otherwise
-        └── projectionProfileId
+ResponsiveProjectionConfiguration
+├── rules[]
+│   ├── query
+│   └── referenceFovY
+└── otherwise
+    └── referenceFovY
 ```
 
-`portalId` は一意とし、DOM側の `[data-portal-id="..."]` と対応させる。要素が見つからない場合は初期化時の設定例外とする。
+`query` は `window.matchMedia()` へ渡すMedia Query文字列とする。`rules` を上から評価して最初に一致したProjectionを選び、どの条件にも一致しない場合は必須の `otherwise` を選ぶ。選択結果は全Portalへ同時に適用する。
 
-`query` は `window.matchMedia()` へ渡すMedia Query文字列とし、具体的なブレークポイントとVariantの対応はTypeScriptの設定オブジェクトに記述する。Portalごとの条件分岐を選択ロジックへハードコードしない。
+### Portal Definition
 
-共通の選択処理は `rules` を上から評価し、最初に一致したVariantを選ぶ。どの条件にも一致しない場合は必須の `otherwise` を選ぶため、常にちょうど1つのVariantが有効になる。各Variantは適用するProjection Profileを完全に指定する。
+Runtimeへ渡す1つのPortalを、参照IDではなく実体で定義する。
+
+```text
+PortalDefinition
+├── element
+├── scene
+├── clearColor
+├── cameraTopY
+└── cameraBottomY
+```
+
+RendererとSceneはホストから借り、Runtimeは生成も破棄もしない。Runtimeが生成するPortal用CameraとMedia Query listenerだけをRuntime自身が管理する。
 
 `renderCameraFovY`、Camera Y移動高、Camera距離、スクロール進行値は設定として保持せず、実行時に導出する。
 
@@ -144,22 +150,27 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 - Standalone wrapperはWebGLRenderer、固定Canvas、描画ループ、resize、DPR上限を管理する。
 - Canvas全体のviewportを維持し、Portalごとのscissor内をclearして描画する。
 - StandaloneではCanvasのPortal外領域を透明にし、EmbeddedではPortal外の既存描画を変更しない。
-- `ResponsiveVariantController` が `window.matchMedia()` と変更listenerを所有し、Coreの純粋な選択関数でProfileを切り替える。
-- RuntimeはSceneとMedia Query listenerを破棄し、Standalone wrapperだけが所有するRendererを破棄する。
+- `ResponsiveProjectionController` が1組の `window.matchMedia()` と変更listenerを所有し、Coreの純粋な選択関数で全PortalのProfileを切り替える。
+- RuntimeはMedia Query listenerを解除するが、借りたSceneとRendererは破棄しない。
+- Standalone wrapperは自身が生成した習作SceneとRendererを破棄する。
 
-Embeddedの `PortalRuntime` はScene生成関数を受け取り、習作固有Sceneへ依存しない。借りたRendererのviewport、scissor、scissor test、clear colorとalpha、`autoClear`、render targetを描画前に保存し、成功時と例外時の両方で復元する。フレームバッファのPortal領域はclear・描画されるため、ホストは既存Sceneとの描画順を決め、通常はPortal描画をそのフレーム内の意図した位置で呼び出す。
+Embeddedの `PortalRuntime` はDOM要素とSceneを直接受け取り、習作固有Sceneへ依存しない。借りたRendererのviewport、scissor、scissor test、clear colorとalpha、`autoClear`、render targetを描画前に保存し、成功時と例外時の両方で復元する。フレームバッファのPortal領域はclear・描画されるため、ホストは既存Sceneとの描画順を決め、通常はPortal描画をそのフレーム内の意図した位置で呼び出す。
 
 ```ts
 const portalRuntime = new PortalRuntime({
   renderer,
-  configurations,
-  profiles,
+  projection,
   referenceProjectionHeightMeters,
-  sceneConfigurations,
-  createScene,
+  portals: [
+    {
+      element,
+      scene,
+      clearColor,
+      cameraTopY,
+      cameraBottomY,
+    },
+  ],
 })
-
-portalRuntime.initialize()
 
 function renderFrame(): void {
   portalRuntime.render({ width: window.innerWidth, height: window.innerHeight })
@@ -173,19 +184,19 @@ Cameraは `(0, cameraY, referenceCameraDistance)` に置き、回転なしで負
 ### Page / UI
 
 - DOM窓、通常コンテンツ、前面レイヤーを配置する。
-- 一意な `data-portal-id` とPortal Configurationの `portalId` を対応させる。
+- Standaloneでは `data-portal-id` からDOM要素を取得し、Runtimeへ直接渡す。
 - Portal寸法をCSSで定義し、Runtimeは `getBoundingClientRect()` のCSS px実測値を使う。
-- viewport条件とProjection Profileの対応を設定する。
+- viewport条件と共通Projection Profileの対応を設定する。
 
 ## 1フレームのデータフロー
 
-初期化時とMedia Queryの変更時に、各Portalの `rules` を上から評価して有効なVariantを選択する。常時requestAnimationFrameを実行し、各フレームでPortalごとに次の順で処理する。
+Runtime生成時とMedia Queryの変更時に、共通の `rules` を上から評価して有効なProjectionを全Portalへ適用する。Standaloneでは常時requestAnimationFrameを実行し、各フレームでPortalごとに次の順で処理する。
 
 1. viewport寸法とfull Portal rectを取得する。
 2. Portalとviewportの交差矩形を求める。
 3. 交差領域がなければ描画対象から外す。
-4. Projection Profile、App共通基準投影高、Scene Configuration、full Portal rectからCamera Y、Camera距離、Render Camera FOV Yを導出する。
+4. Projection Profile、Runtime共通基準投影高、Scene Configuration、full Portal rectからCamera Y、Camera距離、Render Camera FOV Yを導出する。
 5. Canvas全体のWebGL viewportを維持したまま、交差矩形をscissorへ設定する。
 6. scissor内のcolor bufferとdepth bufferをclearしてSceneを描画する。
 
-Scene IDやProfile IDによる条件分岐をPortal Geometryへ埋め込まない。
+Scene固有の条件分岐をPortal Geometryへ埋め込まない。

@@ -17,13 +17,12 @@
 | Portal描画前 | 対象scissor内のcolor bufferとdepth bufferがclearされる |
 | Embedded RuntimeでPortalを描画 | 借りたRendererのviewport、scissor、scissor test、clear設定、`autoClear`、render targetが復元される |
 | Embedded RuntimeのPortal描画で例外 | Renderer状態を復元してから例外がホストへ伝播する |
-| Embedded Runtimeを破棄 | Sceneとlistenerだけを破棄し、借りたRendererは破棄しない |
+| Embedded Runtimeを破棄 | listenerを解除し、借りたSceneとRendererは破棄しない |
 | StandaloneのPortal外Canvas領域 | 透明で背面のDOMが表示される |
 | EmbeddedのPortal外Canvas領域 | ホストが先に描画した内容を変更しない |
 | 複数Portalを配置 | Portal同士が重ならず、描画順に依存しない |
-| 同じSceneを異なるProfileで使用 | 各Portalが独立したCamera結果を持つ |
-| 異なるSceneとProfileを使用 | 一方の設定変更が他方へ影響しない |
-| 同じScene IDを複数Portalで使用 | Portalごとに異なるSceneインスタンスが生成される |
+| 複数Portalのresponsive切り替え | 同じProjection Profileが全Portalへ適用される |
+| 同じSceneを複数Portalへ渡す | Portalごとに独立したCamera結果を持つ |
 | Scene内のZ距離が異なる | 透視投影上の視差が変化する |
 | CSSでvw指定 | `getBoundingClientRect()` のCSS px実測値で計算できる |
 | CSSでpx指定 | `getBoundingClientRect()` のCSS px実測値で同じ計算を使える |
@@ -34,19 +33,18 @@
 | `cameraTopY == cameraBottomY` | 設定例外を投げて処理を終了する |
 | Portalがないフレーム | requestAnimationFrame自体は継続する |
 | Portalが左右に寄る | Camera Xは固定され、Canvas上の対応領域がscissorされる |
-| 複数のMedia Queryが一致 | `rules` の上から最初に一致したVariantだけが選ばれる |
-| どのMedia Queryにも一致しない | 必須の `otherwise` Variantが選ばれる |
-| 非アクティブなruleの参照先が不正 | 初期化時に設定例外を投げて処理を終了する |
+| 複数のMedia Queryが一致 | `rules` の上から最初に一致したProjectionだけが選ばれる |
+| どのMedia Queryにも一致しない | 必須の `otherwise` Projectionが選ばれる |
 | viewport条件が切り替わる | 選択されたProjection Profileが適用される |
-| 条件付きVariantから `otherwise` へ戻る | `otherwise` が指定するProjection Profileへ戻る |
+| 条件付きProjectionから `otherwise` へ戻る | `otherwise` が指定するProjection Profileへ戻る |
 | Runtimeを破棄 | 登録したMedia Queryの変更listenerが解除される |
 | Camera Yが移動 | Camera Xは `0m`、Camera Zは基準Camera距離、向きは負のZ方向に維持される |
-| 設定値から不正なFOVが導出される | 初期化時に設定例外を投げて処理を終了する |
+| 設定値から不正なFOVが導出される | Runtime生成時に設定例外を投げて処理を終了する |
 | 実行時入力から一時的に不正なFOVが導出される | Cameraを部分更新せず、前回の正常状態全体を維持する |
 | 初回から実行時FOVが不正 | 対象Portalを描画しない |
 | 不正状態が複数フレーム継続 | `console.error` を毎フレーム繰り返さない |
-| `data-portal-id` と `portalId` が一致 | DOM窓とPortal Configurationが一意に対応する |
-| `portalId` に対応するDOM要素がない | 初期化時に設定例外を投げて処理を終了する |
+| Portal DefinitionへDOM要素を渡す | その要素の実測矩形がPortal Geometryへ使われる |
+| Standaloneの対象DOM要素がない | App初期化時に例外を投げて処理を終了する |
 
 ## 第1段階の実装値
 
@@ -56,7 +54,7 @@ WebGL基準実装では次の値と処理を採用する。これらはPortal Ge
 - DPR上限は `2`
 - responsive breakpointは `(min-width: 768px)`
 - Wide Profileは基準FOV `42deg`、Narrow Profileは基準FOV `50deg`
-- ParallaxPortalApp内で共有する基準投影高は `3m` とし、Sceneやviewport条件によって変更しない
+- PortalRuntime内で共有する基準投影高は `3m` とし、Sceneやviewport条件によって変更しない
 - 暖色SceneはCamera Y `7.5m` から `0m`、寒色Sceneは `3m` から `0m` とする
 - 習作で比較しやすいデザイン値として、SPのIntroduction高とCamera移動高をShowcaseの `2.5倍` とする。この比率はPortal Geometryの一般要件ではない
 - wide / narrowは同じ基準投影高を異なるFOVで観測し、基準Camera距離はFOVから個別に導出する

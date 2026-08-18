@@ -14,12 +14,10 @@ import {
 } from '../src/lib/parallax-portal/index.ts'
 
 const profile = {
-  profileId: 'test',
   referenceFovY: 42 * Math.PI / 180,
 }
 
 const scene = {
-  sceneId: 'test-scene',
   cameraTopY: 3,
   cameraBottomY: 0,
 }

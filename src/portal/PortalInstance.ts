@@ -5,20 +5,17 @@ import {
   calculateWebGlScissor,
 } from '../lib/parallax-portal/index.ts'
 import type {
-  PortalConfiguration,
   ProjectionProfile,
   Rect,
-  ResponsiveVariant,
   SceneConfiguration,
   ViewportSize,
   WebGlScissorRect,
 } from '../lib/parallax-portal/index.ts'
-import { ResponsiveVariantController } from './ResponsiveVariantController.ts'
 
-export interface PortalSceneBundle {
+export interface PortalDefinition extends SceneConfiguration {
+  element: HTMLElement
   scene: THREE.Scene
   clearColor: THREE.ColorRepresentation
-  dispose: () => void
 }
 
 export interface PortalRenderData {
@@ -37,48 +34,34 @@ interface CameraState {
 }
 
 export class PortalInstance {
-  private readonly configuration: PortalConfiguration
-  private readonly element: HTMLElement
-  private readonly profiles: ReadonlyMap<string, ProjectionProfile>
-  private readonly sceneConfiguration: SceneConfiguration
+  private readonly definition: PortalDefinition
   private readonly referenceProjectionHeightMeters: number
-  private readonly sceneBundle: PortalSceneBundle
   private readonly camera: THREE.PerspectiveCamera
-  private readonly responsiveController: ResponsiveVariantController
-  private activeProfile: ProjectionProfile
+  private activeProjection: ProjectionProfile
   private lastValidCameraState: CameraState | null = null
   private hasRuntimeGeometryError = false
 
   constructor(
-    configuration: PortalConfiguration,
-    element: HTMLElement,
-    profiles: ReadonlyMap<string, ProjectionProfile>,
-    sceneConfiguration: SceneConfiguration,
+    definition: PortalDefinition,
     referenceProjectionHeightMeters: number,
-    sceneBundle: PortalSceneBundle,
+    initialProjection: ProjectionProfile,
   ) {
-    this.configuration = configuration
-    this.element = element
-    this.profiles = profiles
-    this.sceneConfiguration = sceneConfiguration
+    this.definition = definition
     this.referenceProjectionHeightMeters = referenceProjectionHeightMeters
-    this.sceneBundle = sceneBundle
+    this.activeProjection = initialProjection
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100)
     this.camera.position.set(0, 0, 1)
     this.camera.rotation.set(0, 0, 0)
+  }
 
-    this.responsiveController = new ResponsiveVariantController(
-      configuration.responsiveVariants.rules,
-      configuration.responsiveVariants.otherwise,
-      this.applyResponsiveVariant,
-    )
-
-    const initialVariant = this.responsiveController.getCurrentVariant()
-    this.activeProfile = this.requireProfile(initialVariant.projectionProfileId)
+  setProjection(projection: ProjectionProfile): void {
+    this.activeProjection = projection
+    this.lastValidCameraState = null
+    this.hasRuntimeGeometryError = false
   }
 
   getRenderData(viewport: ViewportSize): PortalRenderData | null {
-    const domRect = this.element.getBoundingClientRect()
+    const domRect = this.definition.element.getBoundingClientRect()
     const portalRect: Rect = {
       x: domRect.left,
       y: domRect.top,
@@ -103,8 +86,8 @@ export class PortalInstance {
       const geometry = calculatePortalGeometry(
         portalRect,
         viewport,
-        this.activeProfile,
-        this.sceneConfiguration,
+        this.activeProjection,
+        this.definition,
         this.referenceProjectionHeightMeters,
       )
 
@@ -138,32 +121,11 @@ export class PortalInstance {
     }
 
     return {
-      scene: this.sceneBundle.scene,
+      scene: this.definition.scene,
       camera: this.camera,
-      clearColor: this.sceneBundle.clearColor,
+      clearColor: this.definition.clearColor,
       scissor: calculateWebGlScissor(intersection, viewport.height),
     }
-  }
-
-  dispose(): void {
-    this.responsiveController.dispose()
-    this.sceneBundle.dispose()
-  }
-
-  private readonly applyResponsiveVariant = (variant: ResponsiveVariant): void => {
-    this.activeProfile = this.requireProfile(variant.projectionProfileId)
-    this.lastValidCameraState = null
-    this.hasRuntimeGeometryError = false
-  }
-
-  private requireProfile(profileId: string): ProjectionProfile {
-    const profile = this.profiles.get(profileId)
-
-    if (!profile) {
-      throw new Error(`Portal "${this.configuration.portalId}" references unknown profile "${profileId}".`)
-    }
-
-    return profile
   }
 
   private applyCameraState(state: CameraState): void {
@@ -180,6 +142,8 @@ export class PortalInstance {
     }
 
     this.hasRuntimeGeometryError = true
-    console.error(`Portal "${this.configuration.portalId}" has invalid runtime geometry.`, error)
+    const portalId = this.definition.element.dataset.portalId
+    const label = portalId ? `Portal "${portalId}"` : 'Portal'
+    console.error(`${label} has invalid runtime geometry.`, error)
   }
 }

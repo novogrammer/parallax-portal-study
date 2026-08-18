@@ -1,6 +1,11 @@
 import * as THREE from 'three'
 import type { SceneConfiguration } from '../lib/parallax-portal/index.ts'
-import type { PortalSceneBundle } from './PortalInstance.ts'
+
+export interface StudySceneBundle {
+  scene: THREE.Scene
+  clearColor: THREE.ColorRepresentation
+  dispose: () => void
+}
 
 function createMaterial(color: THREE.ColorRepresentation, roughness: number): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({ color, roughness, metalness: 0.08 })
@@ -106,25 +111,18 @@ function disposeScene(scene: THREE.Scene): void {
   scene.clear()
 }
 
-export function createStudyScene(sceneConfiguration: SceneConfiguration): PortalSceneBundle {
+function createStudyScene(
+  sceneConfiguration: SceneConfiguration,
+  clearColor: THREE.ColorRepresentation,
+  accent: THREE.ColorRepresentation,
+  createContent: (root: THREE.Group) => void,
+): StudySceneBundle {
   const scene = new THREE.Scene()
   const root = new THREE.Group()
   scene.add(root)
 
-  let clearColor: THREE.ColorRepresentation
-
-  if (sceneConfiguration.sceneId === 'warm-boxes') {
-    clearColor = 0x2c160d
-    addCommonLights(scene, 0xffc857)
-    createWarmScene(root)
-  } else if (sceneConfiguration.sceneId === 'cool-orbits') {
-    clearColor = 0x071c2c
-    addCommonLights(scene, 0x73fbd3)
-    createCoolScene(root)
-  } else {
-    throw new Error(`Unknown study scene: ${sceneConfiguration.sceneId}`)
-  }
-
+  addCommonLights(scene, accent)
+  createContent(root)
   addYMeterMarkers(root, sceneConfiguration)
 
   return {
@@ -132,4 +130,12 @@ export function createStudyScene(sceneConfiguration: SceneConfiguration): Portal
     clearColor,
     dispose: () => disposeScene(scene),
   }
+}
+
+export function createWarmStudyScene(sceneConfiguration: SceneConfiguration): StudySceneBundle {
+  return createStudyScene(sceneConfiguration, 0x2c160d, 0xffc857, createWarmScene)
+}
+
+export function createCoolStudyScene(sceneConfiguration: SceneConfiguration): StudySceneBundle {
+  return createStudyScene(sceneConfiguration, 0x071c2c, 0x73fbd3, createCoolScene)
 }
