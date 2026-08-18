@@ -35,7 +35,7 @@ WebGLRendererで、垂直投影、スクロール連動Camera、2つのPortalの
 - resize、Camera aspect、DPR上限、常時requestAnimationFrame
 - 初期化時の設定検証、実行時不正値に対するCamera状態維持
 - RuntimeのMedia Query listenerと、Standaloneが所有するThree.jsリソースの破棄
-- 描画やブラウザAPIに依存しないPortal Coreと、`matchMedia()`を所有するRuntime Controllerの分離
+- 描画やブラウザAPIに依存しないPortal Geometry・responsive選択処理と、`matchMedia()`を所有するRuntimeの分離
 - 画面全体の既存Canvas、単一Renderer、単一RAFへ追加できるEmbedded RuntimeとRenderer状態復元
 - 純粋関数の単体テストとChromeでの表示確認
 

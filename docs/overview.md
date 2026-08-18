@@ -152,7 +152,7 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 - Standalone wrapperはWebGLRenderer、固定Canvas、描画ループ、resize、DPR上限を管理する。
 - Canvas全体のviewportを維持し、Portalごとのscissor内をclearして描画する。
 - StandaloneではCanvasのPortal外領域を透明にし、EmbeddedではPortal外の既存描画を変更しない。
-- `ResponsiveProjectionController` が1組の `window.matchMedia()` と変更listenerを所有し、Coreの純粋な選択関数で全PortalのProfileを切り替える。
+- `PortalRuntime` が1組の `window.matchMedia()` と変更listenerを所有し、純粋な選択関数で全PortalのProfileを切り替える。
 - RuntimeはMedia Query listenerを解除するが、借りたSceneとRendererは破棄しない。
 - Standalone wrapperは自身が生成した習作SceneとRendererを破棄する。
 

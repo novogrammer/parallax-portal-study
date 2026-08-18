@@ -7,16 +7,10 @@ import {
 import type {
   ProjectionProfile,
   Rect,
-  SceneConfiguration,
   ViewportSize,
   WebGlScissorRect,
 } from './types.ts'
-
-export interface PortalDefinition extends SceneConfiguration {
-  element: HTMLElement
-  scene: THREE.Scene
-  clearColor: THREE.ColorRepresentation
-}
+import type { PortalDefinition } from './PortalRuntime.ts'
 
 export interface PortalRenderData {
   scene: THREE.Scene

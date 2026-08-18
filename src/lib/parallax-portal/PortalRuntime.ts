@@ -7,14 +7,18 @@ import {
 import type {
   ProjectionProfile,
   ResponsiveProjectionConfiguration,
+  SceneConfiguration,
   ViewportSize,
 } from './types.ts'
 import { PortalInstance } from './PortalInstance.ts'
-import type { PortalDefinition } from './PortalInstance.ts'
 import { PortalRenderPass } from './PortalRenderPass.ts'
-import { ResponsiveProjectionController } from './ResponsiveProjectionController.ts'
+import { selectResponsiveProjection } from './responsive.ts'
 
-export type { PortalDefinition } from './PortalInstance.ts'
+export interface PortalDefinition extends SceneConfiguration {
+  element: HTMLElement
+  scene: THREE.Scene
+  clearColor: THREE.ColorRepresentation
+}
 
 export interface PortalRuntimeOptions {
   renderer: THREE.WebGLRenderer
@@ -24,9 +28,11 @@ export interface PortalRuntimeOptions {
 }
 
 export class PortalRuntime {
+  private readonly projection: ResponsiveProjectionConfiguration
+  private mediaQueries: readonly MediaQueryList[] = []
+  private currentProjection: ProjectionProfile
   private portals: PortalInstance[] = []
   private renderPass: PortalRenderPass | null = null
-  private responsiveController: ResponsiveProjectionController | null = null
 
   constructor(options: PortalRuntimeOptions) {
     validateReferenceProjectionHeight(options.referenceProjectionHeightMeters)
@@ -34,24 +40,26 @@ export class PortalRuntime {
     validateProjectionProfile(options.projection.otherwise)
     options.portals.forEach(validateSceneConfiguration)
 
-    const responsiveController = new ResponsiveProjectionController(
-      options.projection,
-      this.applyProjection,
-    )
+    this.projection = options.projection
+    this.currentProjection = options.projection.otherwise
+    this.mediaQueries = options.projection.rules.map(({ query }) => window.matchMedia(query))
 
     try {
-      const initialProjection = responsiveController.getCurrentProjection()
+      this.currentProjection = this.selectCurrentProjection()
       this.portals = options.portals.map(
         (definition) => new PortalInstance(
           definition,
           options.referenceProjectionHeightMeters,
-          initialProjection,
+          this.currentProjection,
         ),
       )
       this.renderPass = new PortalRenderPass(options.renderer, this.portals)
-      this.responsiveController = responsiveController
+
+      for (const mediaQuery of this.mediaQueries) {
+        mediaQuery.addEventListener('change', this.handleMediaQueryChange)
+      }
     } catch (error) {
-      responsiveController.dispose()
+      this.removeMediaQueryListeners()
       this.portals = []
       throw error
     }
@@ -66,15 +74,37 @@ export class PortalRuntime {
   }
 
   dispose(): void {
-    this.responsiveController?.dispose()
-    this.responsiveController = null
+    this.removeMediaQueryListeners()
+    this.mediaQueries = []
     this.portals = []
     this.renderPass = null
   }
 
-  private readonly applyProjection = (projection: ProjectionProfile): void => {
+  private selectCurrentProjection(): ProjectionProfile {
+    return selectResponsiveProjection(
+      this.projection.rules,
+      this.mediaQueries.map(({ matches }) => matches),
+      this.projection.otherwise,
+    )
+  }
+
+  private removeMediaQueryListeners(): void {
+    for (const mediaQuery of this.mediaQueries) {
+      mediaQuery.removeEventListener('change', this.handleMediaQueryChange)
+    }
+  }
+
+  private readonly handleMediaQueryChange = (): void => {
+    const nextProjection = this.selectCurrentProjection()
+
+    if (nextProjection.referenceFovY === this.currentProjection.referenceFovY) {
+      return
+    }
+
+    this.currentProjection = nextProjection
+
     for (const portal of this.portals) {
-      portal.setProjection(projection)
+      portal.setProjection(nextProjection)
     }
   }
 }
