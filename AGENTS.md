@@ -2,11 +2,13 @@
 
 ## 正本
 
-- 実装の進捗と段階ごとの対象範囲は `docs/implementation-plan.md` を参照する。
-- 概念と責務は `docs/overview.md`、投影の数式は `docs/vertical-projection.md`、合格条件と実装値は `docs/validation.md` を参照する。
+- 習作の進捗と段階ごとの対象範囲は `docs/implementation-plan.md` を参照する。
+- 習作の構成と責務は `docs/overview.md`、実装値と表示上の合格条件は `docs/validation.md` を参照する。
+- `parallax-portal` の公開API、Runtime、Portal Geometry、投影数式、一般的な合格条件は、[package側の文書](https://github.com/novogrammer/parallax-portal/tree/main/docs)を正本とする。
 - ドキュメントには現時点で有効な設計を記述し、検討過程や会話の時系列を残さない。
 - 同じ説明を複数の文書へ重複させず、古い説明は追記で打ち消さずに整理または置き換える。
-- 設計と実装が食い違った場合は、どちらを正とするかユーザーへ確認してから更新する。
+- packageの一般仕様をこのリポジトリへ複製せず、Studyで選んだ値と統合方法だけを記述する。
+- 文書と実装が食い違った場合は、どちらを正とするかユーザーへ確認してから更新する。
 
 ## reference
 
