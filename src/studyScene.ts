@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import type { SceneConfiguration } from './lib/parallax-portal/index.ts'
+import type { SceneConfiguration } from 'parallax-portal'
 
 export interface StudySceneBundle {
   scene: THREE.Scene

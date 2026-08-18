@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import type {
   PortalRuntime,
   ViewportSize,
-} from './lib/parallax-portal/index.ts'
+} from 'parallax-portal'
 
 const MAX_DEVICE_PIXEL_RATIO = 2
 

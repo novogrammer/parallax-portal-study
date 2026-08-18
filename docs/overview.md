@@ -29,7 +29,7 @@ Portal Core / Geometry <--- Projection Profile
 Portal Runtime ---> host Renderer ---> position: fixed Canvas ---> Scene
 ```
 
-`src/lib/parallax-portal/` にリポジトリ内で再利用するPortal RuntimeとPortal Geometryを配置する。利用側は `index.ts` を唯一の入口とし、lib内部だけが各モジュールを直接importする。Geometryとresponsive Projectionの純粋な選択処理は、同じlib内のRuntimeから分離し、DOM、Three.js、ブラウザAPI、Scene固有値には依存しない。
+Portal RuntimeとPortal Geometryは、別リポジトリの未公開npm package `parallax-portal` をGitHubのcommit SHAで固定して利用する。package内部では、Geometryとresponsive Projectionの純粋な選択処理をRuntimeから分離し、DOM、Three.js、ブラウザAPI、Scene固有値に依存させない。
 
 `src/` 直下の `main.ts`、`StudyApp.ts`、`StudyRenderer.ts`、`studyConfig.ts`、`studyScene.ts` は、この習作固有の利用例でありlibには含めない。この平置きによって、習作が公開入口からlibを利用する依存方向を構造で示す。
 
@@ -162,7 +162,7 @@ DOM型、Three.js型、描画ループには依存しない純粋な計算とす
 Embeddedの `PortalRuntime` はDOM要素とSceneを直接受け取り、習作固有Sceneへ依存しない。借りたRendererのviewport、scissor、scissor test、clear colorとalpha、`autoClear`、render targetを描画前に保存し、成功時と例外時の両方で復元する。フレームバッファのPortal領域はclear・描画されるため、ホストは既存Sceneとの描画順を決め、通常はPortal描画をそのフレーム内の意図した位置で呼び出す。
 
 ```ts
-import { PortalRuntime } from './lib/parallax-portal/index.ts'
+import { PortalRuntime } from 'parallax-portal'
 
 const portalRuntime = new PortalRuntime({
   renderer,

@@ -1,7 +1,7 @@
 import type {
   ProjectionConfiguration,
   SceneConfiguration,
-} from './lib/parallax-portal/index.ts'
+} from 'parallax-portal'
 
 const degreesToRadians = (degrees: number): number => degrees * Math.PI / 180
 

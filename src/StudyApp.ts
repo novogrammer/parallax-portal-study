@@ -1,4 +1,4 @@
-import { PortalRuntime } from './lib/parallax-portal/index.ts'
+import { PortalRuntime } from 'parallax-portal'
 import { createStandaloneRenderer, StudyRenderer } from './StudyRenderer.ts'
 import {
   coolSceneConfiguration,
