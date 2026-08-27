@@ -83,6 +83,23 @@ main {
   width: 100%;
 }
 
+.p-study-back {
+  position: absolute;
+  top: 32px * $px-to-vw-sp;
+  left: 24px * $px-to-vw-sp;
+  color: inherit;
+  font-size: 11px * $px-to-vw-sp;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+
+  @include mq-pc() {
+    top: 64px * $px-to-vw-pc;
+    left: 64px * $px-to-vw-pc;
+    font-size: 12px * $px-to-vw-pc;
+  }
+}
+
 .p-bookend-copy h1,
 .p-bookend-copy h2 {
   margin-top: 12px * $px-to-vw-sp;

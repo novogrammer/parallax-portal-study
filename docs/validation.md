@@ -21,6 +21,9 @@
 
 | 条件 | 期待結果 |
 | --- | --- |
+| ルートURL | Study一覧とVertical Parallaxへのリンクを表示する |
+| Vertical Parallax URL | `/studies/vertical-parallax/` でStudyを直接表示できる |
+| Study内の一覧リンク | ルートのStudy一覧へ戻れる |
 | ページ全体 | Hero、Introduction、Showcase、Footerの順に並ぶ |
 | Portal UI | sectionを示す外枠を表示しない |
 | NarrowのHeroとFooter | 幅375pxのデザイン基準をvw換算する |
@@ -70,4 +73,4 @@ npm test
 npm run build
 ```
 
-Studyの単体テストでは、wide / narrowの共有FOV、共通基準投影高、PortalごとのCamera Y範囲、`setAnimationLoop()` による開始と停止を確認する。見た目に影響する変更ではChromeで通常のWebGPU経路と `?forceWebGL=1` の双方について、wide / narrow、スクロール、resize、2 Portal同時表示、透明領域、Console error不在を確認する。
+本番ビルドでは、Study一覧とVertical ParallaxのHTMLがそれぞれ `dist/` に生成されることを確認する。Studyの単体テストでは、wide / narrowの共有FOV、共通基準投影高、PortalごとのCamera Y範囲、`setAnimationLoop()` による開始と停止を確認する。見た目に影響する変更ではChromeで通常のWebGPU経路と `?forceWebGL=1` の双方について、wide / narrow、スクロール、resize、2 Portal同時表示、透明領域、Console error不在を確認する。

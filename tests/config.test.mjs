@@ -5,7 +5,7 @@ import {
   projectionConfiguration,
   referenceProjectionHeightMeters,
   warmSceneConfiguration,
-} from '../src/studyConfig.ts'
+} from '../src/studies/vertical-parallax/studyConfig.ts'
 
 test('wide and narrow viewing conditions use different shared FOVs', () => {
   assert.equal(projectionConfiguration.rules.length, 1)

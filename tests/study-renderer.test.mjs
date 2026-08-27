@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { StudyRenderer } from '../src/StudyRenderer.ts'
+import { StudyRenderer } from '../src/studies/vertical-parallax/StudyRenderer.ts'
 
 class FakeWebGpuRenderer {
   initialized = true

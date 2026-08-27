@@ -10,11 +10,12 @@ Portal Runtime、Geometry、投影数式の正本は、別リポジトリの[par
 | --- | --- |
 | 第1段階: WebGL基準実装 | 完了 |
 | 第2段階: WebGPU移行検証 | 完了 |
+| 第3段階: 複数Study構成への分離 | 完了 |
 
 ## 共通方針
 
 - `parallax-portal` をGitHubのcommit SHAへ固定して利用する。
-- 習作固有のApp、Renderer、設定、Sceneは `main.ts` と同じ `src/` 直下へ置く。
+- Study固有のHTMLとコードは、Study名に対応する `studies/` と `src/studies/` のサブディレクトリへ置く。
 - StudyがCanvas、WebGPURenderer、resize、`setAnimationLoop()`、全体clear、Sceneリソースを所有する。
 - packageから借りる `PortalRuntime` へRenderer、DOM要素、Scene、Projection設定を渡す。
 - Scene内のオブジェクト配置はStudyのScene生成コードで調整する。
@@ -70,3 +71,24 @@ WebGPU専用compute、TSL、独自Material、ポストプロセス、WebGL版に
 - WebGPU backendとWebGL 2 fallbackの双方で基本機能が成立する。
 - 型検査、本番ビルド、Chromeでの表示確認が成功する。
 - packageとStudyの責務境界が文書化されている。
+
+## 第3段階: 複数Study構成への分離
+
+### 目的
+
+既存の表示と挙動を変えずにVertical Parallaxを独立ページへ移し、ルートを複数Studyの一覧として利用できる構成にする。
+
+### 対象範囲
+
+- ルート `index.html` をStudy一覧にする。
+- 既存StudyのHTMLを `studies/vertical-parallax/`、コードを `src/studies/vertical-parallax/` へまとめる。
+- 各StudyをViteの独立したHTMLエントリとしてビルドする。
+- 一覧からStudy、Studyから一覧へ移動できるリンクを設ける。
+- READMEとStudy固有文書のパスおよびURLを更新する。
+
+### 完了条件
+
+- ルートでStudy一覧が表示される。
+- Vertical Parallaxの表示、WebGPU backend、WebGL 2 fallbackが移動前と同じように動作する。
+- `dist/index.html` と `dist/studies/vertical-parallax/index.html` が生成される。
+- テスト、本番ビルド、Chromeでの表示確認が成功する。

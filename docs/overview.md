@@ -1,4 +1,4 @@
-# Parallax Portal Study 構成
+# Vertical Parallax Study 構成
 
 ## 目的
 
@@ -8,8 +8,10 @@ Portal Geometry、投影数式、responsive選択、Portal用Camera、scissor描
 
 ## 構造
 
+リポジトリのルート `index.html` はStudy一覧を表示し、各Studyを独立したHTMLエントリとして開く。現在のStudyは次の構成とする。
+
 ```text
-index.html / style.scss
+studies/vertical-parallax/index.html
 ├── Hero
 ├── Portal 01: Introduction
 ├── Portal 02: Showcase
@@ -33,14 +35,15 @@ fixed Canvas / WebGPURenderer / setAnimationLoop
 
 | ファイル | 責務 |
 | --- | --- |
-| `main.ts` | Canvasを取得し、StudyAppを初期化して開始する |
-| `StudyApp.ts` | DOM要素、Scene、設定、PortalRuntime、StudyRendererを組み立てて破棄する |
-| `StudyRenderer.ts` | WebGPURenderer、Canvas resize、DPR上限、全体の透明clear、animation loopを所有する |
-| `studyConfig.ts` | この習作で使うFOV、基準投影高、Camera Y範囲を定義する |
-| `studyScene.ts` | 暖色・寒色の検証Sceneを生成し、所有するGPUリソースを破棄する |
-| `style.scss` | ページ、Portal寸法、コンテンツのレスポンシブレイアウトを定義する |
+| `studies/vertical-parallax/index.html` | Study固有のDOMとCanvasを定義する |
+| `src/studies/vertical-parallax/main.ts` | Canvasを取得し、StudyAppを初期化して開始する |
+| `src/studies/vertical-parallax/StudyApp.ts` | DOM要素、Scene、設定、PortalRuntime、StudyRendererを組み立てて破棄する |
+| `src/studies/vertical-parallax/StudyRenderer.ts` | WebGPURenderer、Canvas resize、DPR上限、全体の透明clear、animation loopを所有する |
+| `src/studies/vertical-parallax/studyConfig.ts` | この習作で使うFOV、基準投影高、Camera Y範囲を定義する |
+| `src/studies/vertical-parallax/studyScene.ts` | 暖色・寒色の検証Sceneを生成し、所有するGPUリソースを破棄する |
+| `src/studies/vertical-parallax/style.scss` | ページ、Portal寸法、コンテンツのレスポンシブレイアウトを定義する |
 
-Study固有のコードは `main.ts` と同じ `src/` 直下に置き、packageの一部に見えない構造にする。
+Study固有のHTMLとコードはStudy名のディレクトリへまとめる。ルートの一覧は各Studyへの入口だけを持ち、Study間でRuntimeやSceneを共有しない。
 
 ## PageとPortal
 

@@ -1,12 +1,14 @@
 # Parallax Portal Study
 
-パララックスポータルの習作
+パララックスポータルの習作集
 
-1枚の固定Canvasに、WebGPURendererで複数のThree.js Sceneをscissor描画する検証プロジェクトです。
+DOMとThree.jsを組み合わせたStudyを、独立したページとして検証するプロジェクトです。
 
 [parallax-portal](https://github.com/novogrammer/parallax-portal) をGitHub dependencyとして利用しています。
 
-[デモを見る](https://novogrammer.github.io/parallax-portal-study/)
+[Study一覧を見る](https://novogrammer.github.io/parallax-portal-study/)
+
+- [Vertical Parallax](https://novogrammer.github.io/parallax-portal-study/studies/vertical-parallax/): 1枚の固定Canvasへ複数のThree.js Sceneをscissor描画する基準実装
 
 ## ドキュメント
 
@@ -19,4 +21,4 @@ npm install
 npm run dev
 ```
 
-`http://localhost:5173/?forceWebGL=1` では、WebGPURendererのWebGL 2 backendを強制して確認できます。
+`http://localhost:5173/studies/vertical-parallax/?forceWebGL=1` では、Vertical Parallax StudyのWebGL 2 backendを強制して確認できます。
