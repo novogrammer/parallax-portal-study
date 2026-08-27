@@ -8,10 +8,10 @@ Portal Geometry、投影数式、responsive選択、Portal用Camera、scissor描
 
 ## 構造
 
-リポジトリのルート `index.html` はStudy一覧を表示し、各Studyを独立したHTMLエントリとして開く。現在のStudyは次の構成とする。
+Viteのrootは `src/` とする。`src/index.html` はStudy一覧を表示し、各Studyを独立したHTMLエントリとして開く。現在のStudyは次の構成とする。
 
 ```text
-studies/vertical-parallax/index.html
+src/studies/vertical-parallax/index.html
 ├── Hero
 ├── Portal 01: Introduction
 ├── Portal 02: Showcase
@@ -35,7 +35,8 @@ fixed Canvas / WebGPURenderer / setAnimationLoop
 
 | ファイル | 責務 |
 | --- | --- |
-| `studies/vertical-parallax/index.html` | Study固有のDOMとCanvasを定義する |
+| `src/index.html` | Study一覧と各Studyへのリンクを定義する |
+| `src/studies/vertical-parallax/index.html` | Study固有のDOMとCanvasを定義する |
 | `src/studies/vertical-parallax/main.ts` | Canvasを取得し、StudyAppを初期化して開始する |
 | `src/studies/vertical-parallax/StudyApp.ts` | DOM要素、Scene、設定、PortalRuntime、StudyRendererを組み立てて破棄する |
 | `src/studies/vertical-parallax/StudyRenderer.ts` | WebGPURenderer、Canvas resize、DPR上限、全体の透明clear、animation loopを所有する |
@@ -43,7 +44,7 @@ fixed Canvas / WebGPURenderer / setAnimationLoop
 | `src/studies/vertical-parallax/studyScene.ts` | 暖色・寒色の検証Sceneを生成し、所有するGPUリソースを破棄する |
 | `src/studies/vertical-parallax/style.scss` | ページ、Portal寸法、コンテンツのレスポンシブレイアウトを定義する |
 
-Study固有のHTMLとコードはStudy名のディレクトリへまとめる。ルートの一覧は各Studyへの入口だけを持ち、Study間でRuntimeやSceneを共有しない。
+Study固有のHTML、コード、将来追加するassetsは `src/studies/<study-name>/` へまとめる。ルートの一覧は各Studyへの入口だけを持ち、Study間でRuntimeやSceneを共有しない。
 
 ## PageとPortal
 

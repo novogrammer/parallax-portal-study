@@ -15,7 +15,7 @@ Portal Runtime、Geometry、投影数式の正本は、別リポジトリの[par
 ## 共通方針
 
 - `parallax-portal` をGitHubのcommit SHAへ固定して利用する。
-- Study固有のHTMLとコードは、Study名に対応する `studies/` と `src/studies/` のサブディレクトリへ置く。
+- Viteのrootを `src/` とし、Study固有のHTML、コード、assetsは `src/studies/<study-name>/` へまとめる。
 - StudyがCanvas、WebGPURenderer、resize、`setAnimationLoop()`、全体clear、Sceneリソースを所有する。
 - packageから借りる `PortalRuntime` へRenderer、DOM要素、Scene、Projection設定を渡す。
 - Scene内のオブジェクト配置はStudyのScene生成コードで調整する。
@@ -80,8 +80,8 @@ WebGPU専用compute、TSL、独自Material、ポストプロセス、WebGL版に
 
 ### 対象範囲
 
-- ルート `index.html` をStudy一覧にする。
-- 既存StudyのHTMLを `studies/vertical-parallax/`、コードを `src/studies/vertical-parallax/` へまとめる。
+- `src/index.html` をStudy一覧にする。
+- 既存StudyのHTMLとコードを `src/studies/vertical-parallax/` へまとめる。
 - 各StudyをViteの独立したHTMLエントリとしてビルドする。
 - 一覧からStudy、Studyから一覧へ移動できるリンクを設ける。
 - READMEとStudy固有文書のパスおよびURLを更新する。
