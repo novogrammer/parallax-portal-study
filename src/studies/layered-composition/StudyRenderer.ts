@@ -10,16 +10,19 @@ export class StudyRenderer {
   private readonly renderer: THREE.WebGPURenderer
   private readonly runtime: PortalRuntime
   private readonly onResize: () => void
+  private readonly onRendererReady: (renderer: THREE.WebGPURenderer) => void
   private isStarted = false
 
   constructor(
     renderer: THREE.WebGPURenderer,
     runtime: PortalRuntime,
     onResize: () => void,
+    onRendererReady: (renderer: THREE.WebGPURenderer) => void,
   ) {
     this.renderer = renderer
     this.runtime = runtime
     this.onResize = onResize
+    this.onRendererReady = onRendererReady
   }
 
   async start(): Promise<void> {
@@ -33,6 +36,7 @@ export class StudyRenderer {
     try {
       this.resize()
       await this.renderer.setAnimationLoop(this.render)
+      this.onRendererReady(this.renderer)
       this.renderer.domElement.dataset.rendererBackend =
         'isWebGPUBackend' in this.renderer.backend ? 'webgpu' : 'webgl2'
     } catch (error) {

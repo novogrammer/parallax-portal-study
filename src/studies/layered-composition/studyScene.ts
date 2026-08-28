@@ -20,6 +20,7 @@ export interface StudySceneBundle {
   scene: THREE.Scene
   clearColor: THREE.ColorRepresentation
   ready: Promise<void>
+  activate: (renderer: THREE.WebGPURenderer) => void
   updateLayout: () => void
   dispose: () => void
 }
@@ -30,6 +31,12 @@ export interface DomPlaneStudySceneOptions {
   projectionConfiguration: ProjectionConfiguration
   referenceProjectionHeightMeters: number
   sceneConfiguration: SceneConfiguration
+  textureStore: DomPlaneTextureStore
+}
+
+export interface DomPlaneTextureStore {
+  get: (image: HTMLImageElement) => THREE.Texture
+  dispose: () => void
 }
 
 interface DomPlaneSource {
@@ -41,6 +48,45 @@ interface DomPlaneMesh extends DomPlaneSource {
   material: THREE.MeshBasicMaterial
   mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>
   texture: THREE.Texture
+}
+
+class SharedDomPlaneTextureStore implements DomPlaneTextureStore {
+  private readonly textures = new Map<string, THREE.Texture>()
+  private isDisposed = false
+
+  get = (image: HTMLImageElement): THREE.Texture => {
+    if (this.isDisposed) {
+      throw new Error('Layered Composition texture store has been disposed.')
+    }
+
+    const sourceUrl = image.currentSrc || image.src
+
+    if (!sourceUrl) {
+      throw new Error('Layered Composition image source URL is empty.')
+    }
+
+    const existingTexture = this.textures.get(sourceUrl)
+
+    if (existingTexture) {
+      return existingTexture
+    }
+
+    const texture = new THREE.Texture(image)
+    texture.colorSpace = THREE.SRGBColorSpace
+    texture.needsUpdate = true
+    this.textures.set(sourceUrl, texture)
+    return texture
+  }
+
+  dispose = (): void => {
+    if (this.isDisposed) {
+      return
+    }
+
+    this.isDisposed = true
+    this.textures.forEach((texture) => texture.dispose())
+    this.textures.clear()
+  }
 }
 
 function toRect(domRect: DOMRect): Rect {
@@ -87,6 +133,7 @@ class DomPlaneStudyScene implements StudySceneBundle {
   private meshes: DomPlaneMesh[] = []
   private hasValidLayout = false
   private hasLayoutError = false
+  private isActivated = false
   private isDisposed = false
 
   constructor(options: DomPlaneStudySceneOptions) {
@@ -149,6 +196,16 @@ class DomPlaneStudyScene implements StudySceneBundle {
     }
   }
 
+  activate = (renderer: THREE.WebGPURenderer): void => {
+    if (this.isDisposed || this.isActivated) {
+      return
+    }
+
+    this.meshes.forEach(({ texture }) => renderer.initTexture(texture))
+    this.sourceElement.setAttribute(PROJECTED_ATTRIBUTE, '')
+    this.isActivated = true
+  }
+
   dispose = (): void => {
     if (this.isDisposed) {
       return
@@ -156,6 +213,7 @@ class DomPlaneStudyScene implements StudySceneBundle {
 
     this.isDisposed = true
     this.sourceElement.removeAttribute(PROJECTED_ATTRIBUTE)
+    this.isActivated = false
     this.releaseResources()
   }
 
@@ -168,9 +226,7 @@ class DomPlaneStudyScene implements StudySceneBundle {
       }
 
       this.meshes = this.sources.map((source) => {
-        const texture = new THREE.Texture(source.image)
-        texture.colorSpace = THREE.SRGBColorSpace
-        texture.needsUpdate = true
+        const texture = this.options.textureStore.get(source.image)
 
         const material = new THREE.MeshBasicMaterial({
           map: texture,
@@ -186,7 +242,6 @@ class DomPlaneStudyScene implements StudySceneBundle {
       })
 
       this.updateLayout()
-      this.sourceElement.setAttribute(PROJECTED_ATTRIBUTE, '')
     } catch (error) {
       this.releaseResources()
       throw error
@@ -195,13 +250,16 @@ class DomPlaneStudyScene implements StudySceneBundle {
 
   private releaseResources(): void {
     this.scene.clear()
-    this.meshes.forEach(({ material, texture }) => {
+    this.meshes.forEach(({ material }) => {
       material.dispose()
-      texture.dispose()
     })
     this.meshes = []
     this.geometry.dispose()
   }
+}
+
+export function createDomPlaneTextureStore(): DomPlaneTextureStore {
+  return new SharedDomPlaneTextureStore()
 }
 
 export function createDomPlaneStudyScene(

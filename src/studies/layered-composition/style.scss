@@ -262,7 +262,7 @@ main {
 }
 
 [data-plane-source][data-projected] {
-  opacity: 0;
+  visibility: hidden;
 }
 
 .p-study-back {

@@ -7,7 +7,10 @@ import {
   referenceProjectionHeightMeters,
   warmSceneConfiguration,
 } from '../src/studies/layered-composition/studyConfig.ts'
-import { createDomPlaneStudyScene } from '../src/studies/layered-composition/studyScene.ts'
+import {
+  createDomPlaneStudyScene,
+  createDomPlaneTextureStore,
+} from '../src/studies/layered-composition/studyScene.ts'
 
 test('layered composition defines four DOM plane sources for each Portal', async () => {
   const html = await readFile(
@@ -26,6 +29,7 @@ test('a DOM plane Scene owns four transparent planes and disposes their resource
   const sourceAttributes = new Set(['data-plane-source'])
   const images = [-3, -2, -1, 0].map((z) => ({
     className: `plane-${z}`,
+    currentSrc: `https://example.test/plane-${z}.png`,
     decode: async () => {},
     getAttribute: (name) => name === 'data-z' ? String(z) : null,
     getBoundingClientRect: () => ({
@@ -55,17 +59,19 @@ test('a DOM plane Scene owns four transparent planes and disposes their resource
   }
 
   try {
+    const textureStore = createDomPlaneTextureStore()
     const sceneBundle = createDomPlaneStudyScene({
       portalElement,
       clearColor: 0x2c160d,
       projectionConfiguration,
       referenceProjectionHeightMeters,
       sceneConfiguration: warmSceneConfiguration,
+      textureStore,
     })
 
     await sceneBundle.ready
     assert.equal(sceneBundle.scene.children.length, 4)
-    assert.equal(sourceAttributes.has('data-projected'), true)
+    assert.equal(sourceAttributes.has('data-projected'), false)
 
     const meshes = [...sceneBundle.scene.children]
     meshes.forEach((mesh) => assert.equal(mesh.frustumCulled, false))
@@ -74,12 +80,27 @@ test('a DOM plane Scene owns four transparent planes and disposes their resource
     let materialDisposals = 0
     let textureDisposals = 0
     geometry.addEventListener('dispose', () => { geometryDisposals += 1 })
+    const textures = meshes.map((mesh) => mesh.material.map)
+    textures.forEach((texture) => {
+      texture.addEventListener('dispose', () => { textureDisposals += 1 })
+    })
     meshes.forEach((mesh) => {
       assert.equal(mesh.material.transparent, true)
       assert.equal(mesh.material.depthWrite, false)
       mesh.material.addEventListener('dispose', () => { materialDisposals += 1 })
-      mesh.material.map.addEventListener('dispose', () => { textureDisposals += 1 })
     })
+
+    const initializedTextures = []
+    sceneBundle.activate({
+      initTexture: (texture) => initializedTextures.push(texture),
+    })
+
+    assert.equal(initializedTextures.length, 4)
+    assert.equal(sourceAttributes.has('data-projected'), true)
+    assert.equal(
+      textureStore.get({ currentSrc: images[0].currentSrc }),
+      meshes[0].material.map,
+    )
 
     sceneBundle.dispose()
 
@@ -87,6 +108,9 @@ test('a DOM plane Scene owns four transparent planes and disposes their resource
     assert.equal(sourceAttributes.has('data-projected'), false)
     assert.equal(geometryDisposals, 1)
     assert.equal(materialDisposals, 4)
+    assert.equal(textureDisposals, 0)
+
+    textureStore.dispose()
     assert.equal(textureDisposals, 4)
   } finally {
     delete globalThis.window

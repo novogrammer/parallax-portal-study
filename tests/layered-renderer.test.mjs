@@ -32,14 +32,20 @@ test('Layered Composition recalculates layout on start and resize', async () => 
   try {
     const renderer = new FakeRenderer()
     let layoutUpdates = 0
+    let rendererReadyCalls = 0
     const studyRenderer = new StudyRenderer(
       renderer,
       { render: () => {} },
       () => { layoutUpdates += 1 },
+      (initializedRenderer) => {
+        assert.equal(initializedRenderer, renderer)
+        rendererReadyCalls += 1
+      },
     )
 
     await studyRenderer.start()
     assert.equal(layoutUpdates, 1)
+    assert.equal(rendererReadyCalls, 1)
     assert.deepEqual(renderer.sizes.at(-1), [1280, 720, false])
 
     window.innerWidth = 375
