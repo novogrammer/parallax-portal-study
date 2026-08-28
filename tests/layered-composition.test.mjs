@@ -8,8 +8,8 @@ import {
   warmSceneConfiguration,
 } from '../src/studies/layered-composition/studyConfig.ts'
 import {
+  DomPlaneTextureCache,
   createDomPlaneStudyScene,
-  createDomPlaneTextureStore,
 } from '../src/studies/layered-composition/studyScene.ts'
 
 test('layered composition defines four DOM plane sources for each Portal', async () => {
@@ -59,14 +59,14 @@ test('a DOM plane Scene owns four transparent planes and disposes their resource
   }
 
   try {
-    const textureStore = createDomPlaneTextureStore()
+    const textureCache = new DomPlaneTextureCache()
     const sceneBundle = createDomPlaneStudyScene({
       portalElement,
       clearColor: 0x2c160d,
       projectionConfiguration,
       referenceProjectionHeightMeters,
       sceneConfiguration: warmSceneConfiguration,
-      textureStore,
+      textureCache,
     })
 
     await sceneBundle.ready
@@ -90,7 +90,7 @@ test('a DOM plane Scene owns four transparent planes and disposes their resource
     })
 
     assert.equal(
-      textureStore.get({ currentSrc: images[0].currentSrc }),
+      textureCache.get({ currentSrc: images[0].currentSrc }),
       meshes[0].material.map,
     )
 
@@ -102,7 +102,7 @@ test('a DOM plane Scene owns four transparent planes and disposes their resource
     assert.equal(materialDisposals, 4)
     assert.equal(textureDisposals, 0)
 
-    textureStore.dispose()
+    textureCache.dispose()
     assert.equal(textureDisposals, 4)
   } finally {
     delete globalThis.window

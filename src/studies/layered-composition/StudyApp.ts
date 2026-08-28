@@ -7,10 +7,10 @@ import {
   warmSceneConfiguration,
 } from './studyConfig.ts'
 import {
+  DomPlaneTextureCache,
   createDomPlaneStudyScene,
-  createDomPlaneTextureStore,
 } from './studyScene.ts'
-import type { DomPlaneTextureStore, StudySceneBundle } from './studyScene.ts'
+import type { StudySceneBundle } from './studyScene.ts'
 
 export interface StudyAppOptions {
   canvas: HTMLCanvasElement
@@ -34,7 +34,7 @@ export class StudyApp {
   private sceneBundles: StudySceneBundle[] = []
   private runtime: PortalRuntime | null = null
   private renderer: StudyRenderer | null = null
-  private textureStore: DomPlaneTextureStore | null = null
+  private textureCache: DomPlaneTextureCache | null = null
   private isInitialized = false
 
   constructor(options: StudyAppOptions) {
@@ -50,7 +50,7 @@ export class StudyApp {
     const coolElement = requirePortalElement('cool-depth')
     const renderer = createStandaloneRenderer(this.options.canvas, this.options.forceWebGL)
     const sceneBundles: StudySceneBundle[] = []
-    const textureStore = createDomPlaneTextureStore()
+    const textureCache = new DomPlaneTextureCache()
     let runtime: PortalRuntime | null = null
 
     try {
@@ -60,7 +60,7 @@ export class StudyApp {
         projectionConfiguration,
         referenceProjectionHeightMeters,
         sceneConfiguration: warmSceneConfiguration,
-        textureStore,
+        textureCache,
       })
       sceneBundles.push(warmScene)
       const coolScene = createDomPlaneStudyScene({
@@ -69,7 +69,7 @@ export class StudyApp {
         projectionConfiguration,
         referenceProjectionHeightMeters,
         sceneConfiguration: coolSceneConfiguration,
-        textureStore,
+        textureCache,
       })
       sceneBundles.push(coolScene)
 
@@ -95,7 +95,7 @@ export class StudyApp {
 
       this.sceneBundles = sceneBundles
       this.runtime = runtime
-      this.textureStore = textureStore
+      this.textureCache = textureCache
       this.renderer = new StudyRenderer(
         renderer,
         runtime,
@@ -105,7 +105,7 @@ export class StudyApp {
     } catch (error) {
       runtime?.dispose()
       sceneBundles.forEach((sceneBundle) => sceneBundle.dispose())
-      textureStore.dispose()
+      textureCache.dispose()
       if (renderer.initialized) {
         renderer.dispose()
       }
@@ -133,11 +133,11 @@ export class StudyApp {
     this.renderer?.dispose()
     this.runtime?.dispose()
     this.sceneBundles.forEach((sceneBundle) => sceneBundle.dispose())
-    this.textureStore?.dispose()
+    this.textureCache?.dispose()
     this.renderer = null
     this.runtime = null
     this.sceneBundles = []
-    this.textureStore = null
+    this.textureCache = null
     this.isInitialized = false
   }
 

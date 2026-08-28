@@ -30,12 +30,7 @@ export interface DomPlaneStudySceneOptions {
   projectionConfiguration: ProjectionConfiguration
   referenceProjectionHeightMeters: number
   sceneConfiguration: SceneConfiguration
-  textureStore: DomPlaneTextureStore
-}
-
-export interface DomPlaneTextureStore {
-  get: (image: HTMLImageElement) => THREE.Texture
-  dispose: () => void
+  textureCache: DomPlaneTextureCache
 }
 
 interface DomPlaneSource {
@@ -48,13 +43,13 @@ interface DomPlaneMesh extends DomPlaneSource {
   mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>
 }
 
-class SharedDomPlaneTextureStore implements DomPlaneTextureStore {
+export class DomPlaneTextureCache {
   private readonly textures = new Map<string, THREE.Texture>()
   private isDisposed = false
 
   get = (image: HTMLImageElement): THREE.Texture => {
     if (this.isDisposed) {
-      throw new Error('Layered Composition texture store has been disposed.')
+      throw new Error('Layered Composition texture cache has been disposed.')
     }
 
     const sourceUrl = image.currentSrc || image.src
@@ -212,7 +207,7 @@ class DomPlaneStudyScene implements StudySceneBundle {
       }
 
       this.meshes = this.sources.map((source) => {
-        const texture = this.options.textureStore.get(source.image)
+        const texture = this.options.textureCache.get(source.image)
 
         const material = new THREE.MeshBasicMaterial({
           map: texture,
@@ -242,10 +237,6 @@ class DomPlaneStudyScene implements StudySceneBundle {
     this.meshes = []
     this.geometry.dispose()
   }
-}
-
-export function createDomPlaneTextureStore(): DomPlaneTextureStore {
-  return new SharedDomPlaneTextureStore()
 }
 
 export function createDomPlaneStudyScene(
