@@ -74,7 +74,6 @@ test('a DOM plane Scene owns four transparent planes and disposes their resource
     assert.equal(sourceAttributes.has('data-projected'), true)
 
     const meshes = [...sceneBundle.scene.children]
-    meshes.forEach((mesh) => assert.equal(mesh.frustumCulled, false))
     const geometry = meshes[0].geometry
     let geometryDisposals = 0
     let materialDisposals = 0

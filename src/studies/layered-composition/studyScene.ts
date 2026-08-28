@@ -46,7 +46,6 @@ interface DomPlaneSource {
 interface DomPlaneMesh extends DomPlaneSource {
   material: THREE.MeshBasicMaterial
   mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>
-  texture: THREE.Texture
 }
 
 class SharedDomPlaneTextureStore implements DomPlaneTextureStore {
@@ -221,11 +220,10 @@ class DomPlaneStudyScene implements StudySceneBundle {
           depthWrite: false,
         })
         const mesh = new THREE.Mesh(this.geometry, material)
-        mesh.frustumCulled = false
         mesh.name = `dom-plane:${source.image.className}`
         this.scene.add(mesh)
 
-        return { ...source, material, mesh, texture }
+        return { ...source, material, mesh }
       })
 
       this.updateLayout()
