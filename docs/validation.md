@@ -21,8 +21,9 @@
 
 | 条件 | 期待結果 |
 | --- | --- |
-| ルートURL | Study一覧とVertical Parallaxへのリンクを表示する |
+| ルートURL | Study一覧とVertical Parallax、Layered Compositionへのリンクを表示する |
 | Vertical Parallax URL | `/studies/vertical-parallax/` でStudyを直接表示できる |
+| Layered Composition URL | `/studies/layered-composition/` でStudyを直接表示できる |
 | Study内の一覧リンク | ルートのStudy一覧へ戻れる |
 | ページ全体 | Hero、Introduction、Showcase、Footerの順に並ぶ |
 | Portal UI | sectionを示す外枠を表示しない |
@@ -65,6 +66,17 @@
 
 Portal Geometry、responsive選択、Camera clipping plane、Renderer状態復元の一般的な合格条件は、package側の[検証条件](https://github.com/novogrammer/parallax-portal/blob/main/docs/validation.md)を正本とする。
 
+## Layered Composition初期構成
+
+| 条件 | 期待結果 |
+| --- | --- |
+| Portal数 | 1つ |
+| Scene直下のオブジェクト数 | `0` |
+| Portal表示 | Sceneのclear colorだけを表示し、3Dオブジェクトを描画しない |
+| 通常URL | WebGPU backendで初期化できる |
+| `?forceWebGL=1` | WebGL 2 backendで同じ空Sceneを表示できる |
+| 今回の対象外 | 透過画像、`data-depth`、DOM矩形の逆投影 |
+
 ## 自動検証
 
 ```sh
@@ -73,4 +85,4 @@ npm test
 npm run build
 ```
 
-本番ビルドでは、Study一覧とVertical ParallaxのHTMLがそれぞれ `dist/` に生成されることを確認する。Studyの単体テストでは、wide / narrowの共有FOV、共通基準投影高、PortalごとのCamera Y範囲、`setAnimationLoop()` による開始と停止を確認する。見た目に影響する変更ではChromeで通常のWebGPU経路と `?forceWebGL=1` の双方について、wide / narrow、スクロール、resize、2 Portal同時表示、透明領域、Console error不在を確認する。
+本番ビルドでは、Study一覧、Vertical Parallax、Layered CompositionのHTMLがそれぞれ `dist/` に生成されることを確認する。Studyの単体テストでは、wide / narrowの共有FOV、共通基準投影高、PortalごとのCamera Y範囲、Layered Compositionの空Scene、`setAnimationLoop()` による開始と停止を確認する。見た目に影響する変更ではブラウザで通常のWebGPU経路と `?forceWebGL=1` の双方について、各Portalの表示とConsole error不在を確認する。

@@ -9,6 +9,7 @@ DOMとThree.jsを組み合わせたStudyを、独立したページとして検�
 [Study一覧を見る](https://novogrammer.github.io/parallax-portal-study/)
 
 - [Vertical Parallax](https://novogrammer.github.io/parallax-portal-study/studies/vertical-parallax/): 1枚の固定Canvasへ複数のThree.js Sceneをscissor描画する基準実装
+- [Layered Composition](https://novogrammer.github.io/parallax-portal-study/studies/layered-composition/): DOMカンプへ透過画像レイヤーの奥行きを加えるためのStudy
 
 ## ドキュメント
 

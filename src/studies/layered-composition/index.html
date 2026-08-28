@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Layered Composition | Parallax Portal Studies</title>
+  </head>
+  <body>
+    <canvas class="p-study-canvas" aria-hidden="true"></canvas>
+    <main>
+      <section class="p-study-hero">
+        <a class="p-study-back" href="../../">All Studies</a>
+        <div class="p-study-copy">
+          <p class="p-eyebrow">Parallax Portal / WebGPU Study</p>
+          <h1>Compose in DOM.<br>Add depth later.</h1>
+          <p>CSSで組んだデザインカンプを、透過画像のレイヤーごと3Dへ移すための習作。</p>
+        </div>
+      </section>
+
+      <section
+        class="p-composition-portal"
+        data-portal-id="layered-composition"
+        aria-labelledby="layered-composition-title"
+      >
+        <div class="p-portal-copy">
+          <p class="p-eyebrow">Portal 01 / Initial state</p>
+          <h2 id="layered-composition-title">Empty scene</h2>
+          <p>Portal、Camera、Rendererだけを初期化し、Sceneにはまだオブジェクトを置いていません。</p>
+        </div>
+      </section>
+
+      <section class="p-study-footer">
+        <div class="p-study-copy">
+          <p class="p-eyebrow">Next step</p>
+          <h2>Transparent layers.<br>Measured from DOM.</h2>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

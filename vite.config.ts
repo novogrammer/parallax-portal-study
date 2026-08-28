@@ -14,6 +14,10 @@ export default defineConfig({
           import.meta.dirname,
           'src/studies/vertical-parallax/index.html',
         ),
+        layeredComposition: resolve(
+          import.meta.dirname,
+          'src/studies/layered-composition/index.html',
+        ),
       },
     },
   },

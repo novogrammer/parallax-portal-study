@@ -11,6 +11,7 @@ Portal Runtime、Geometry、投影数式の正本は、別リポジトリの[par
 | 第1段階: WebGL基準実装 | 完了 |
 | 第2段階: WebGPU移行検証 | 完了 |
 | 第3段階: 複数Study構成への分離 | 完了 |
+| 第4段階: Layered Composition初期構成 | 完了 |
 
 ## 共通方針
 
@@ -92,3 +93,25 @@ WebGPU専用compute、TSL、独自Material、ポストプロセス、WebGL版に
 - Vertical Parallaxの表示、WebGPU backend、WebGL 2 fallbackが移動前と同じように動作する。
 - `dist/index.html` と `dist/studies/vertical-parallax/index.html` が生成される。
 - テスト、本番ビルド、Chromeでの表示確認が成功する。
+
+## 第4段階: Layered Composition初期構成
+
+### 目的
+
+DOMで再現したデザインカンプへ透過画像レイヤーの奥行きを加えるStudyについて、オブジェクトを追加する前の実行基盤を用意する。
+
+### 対象範囲
+
+- `src/studies/layered-composition/` に独立したHTML、App、Renderer、設定、Scene、SCSSを置く。
+- 1枚の固定Canvas、単一のWebGPURenderer、単一のPortalを初期化する。
+- SceneにはLight、Group、Mesh、Geometry、Materialを追加しない。
+- Study一覧とViteのmulti-page buildへ追加する。
+- 透過画像、`data-depth`、DOM矩形の逆投影は次の実装段階まで追加しない。
+
+### 完了条件
+
+- Study一覧からLayered Compositionを開ける。
+- 空のSceneをWebGPU backendとWebGL 2 fallbackの双方で描画できる。
+- Sceneの直下にオブジェクトが存在しないことを単体テストで確認できる。
+- `dist/studies/layered-composition/index.html` が生成される。
+- テスト、本番ビルド、ブラウザでの表示確認が成功する。

@@ -1,0 +1,157 @@
+$break-width-pc: 768px;
+
+:root {
+  color: #1c211f;
+  background: #e8e2d8;
+  font-family: Inter, Helvetica, Arial, sans-serif;
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html {
+  background: #e8e2d8;
+  overscroll-behavior-y: none;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  background: #e8e2d8;
+}
+
+.p-study-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+main {
+  position: relative;
+  z-index: 1;
+}
+
+.p-study-hero,
+.p-study-footer {
+  position: relative;
+  display: grid;
+  min-height: 100svh;
+  padding: 32px 24px;
+  align-items: center;
+  background: #e8e2d8;
+}
+
+.p-study-footer {
+  min-height: 70svh;
+  color: #f2eee7;
+  background: #151916;
+}
+
+.p-study-back {
+  position: absolute;
+  top: 32px;
+  left: 24px;
+  color: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.p-study-copy {
+  max-width: 920px;
+}
+
+.p-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.p-study-copy h1,
+.p-study-copy h2 {
+  margin-top: 16px;
+  font-size: clamp(52px, 11vw, 132px);
+  font-weight: 500;
+  line-height: 0.88;
+  letter-spacing: -0.065em;
+}
+
+.p-study-copy > p:last-child {
+  max-width: 680px;
+  margin-top: 28px;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.p-composition-portal {
+  position: relative;
+  display: grid;
+  min-height: 150svh;
+  padding: 24px;
+  align-items: center;
+  color: #f3eee5;
+}
+
+.p-portal-copy {
+  width: min(100%, 680px);
+  padding: 28px;
+  background: rgba(11, 18, 15, 0.58);
+  backdrop-filter: blur(10px);
+}
+
+.p-portal-copy h2 {
+  margin-top: 12px;
+  font-size: clamp(52px, 10vw, 112px);
+  font-weight: 500;
+  line-height: 0.9;
+  letter-spacing: -0.06em;
+}
+
+.p-portal-copy > p:last-child {
+  max-width: 580px;
+  margin-top: 24px;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.portal-unavailable .p-composition-portal {
+  background: #17201d;
+}
+
+@media screen and (min-width: $break-width-pc) {
+  .p-study-hero,
+  .p-study-footer {
+    padding: 64px;
+  }
+
+  .p-study-back {
+    top: 64px;
+    left: 64px;
+    font-size: 12px;
+  }
+
+  .p-study-copy > p:last-child {
+    font-size: 18px;
+  }
+
+  .p-composition-portal {
+    min-height: 1400px;
+    padding: 64px;
+  }
+
+  .p-portal-copy {
+    padding: 48px;
+  }
+
+  .p-portal-copy > p:last-child {
+    font-size: 18px;
+  }
+}
