@@ -1,23 +1,30 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  coolSceneConfiguration,
   projectionConfiguration,
   referenceProjectionHeightMeters,
-  sceneConfiguration,
+  warmSceneConfiguration,
 } from '../src/studies/layered-composition/studyConfig.ts'
 import { createEmptyStudyScene } from '../src/studies/layered-composition/studyScene.ts'
 
-test('layered composition starts with an empty scene', () => {
-  const sceneBundle = createEmptyStudyScene()
+test('layered composition starts with two empty scenes', () => {
+  const sceneBundles = [
+    createEmptyStudyScene(0x2c160d),
+    createEmptyStudyScene(0x071c2c),
+  ]
 
-  assert.equal(sceneBundle.scene.children.length, 0)
+  sceneBundles.forEach((sceneBundle) => {
+    assert.equal(sceneBundle.scene.children.length, 0)
 
-  sceneBundle.dispose()
-  assert.equal(sceneBundle.scene.children.length, 0)
+    sceneBundle.dispose()
+    assert.equal(sceneBundle.scene.children.length, 0)
+  })
 })
 
-test('layered composition uses one non-zero camera travel range', () => {
+test('layered composition matches the two portal camera travel ranges', () => {
   assert.equal(referenceProjectionHeightMeters, 3)
   assert.equal(projectionConfiguration.rules?.length, 1)
-  assert.deepEqual(sceneConfiguration, { cameraTopY: 3, cameraBottomY: 0 })
+  assert.deepEqual(warmSceneConfiguration, { cameraTopY: 7.5, cameraBottomY: 0 })
+  assert.deepEqual(coolSceneConfiguration, { cameraTopY: 3, cameraBottomY: 0 })
 })

@@ -2,7 +2,7 @@ import './style.scss'
 import { StudyApp } from './StudyApp.ts'
 
 async function main(): Promise<void> {
-  const canvas = document.querySelector<HTMLCanvasElement>('.p-study-canvas')
+  const canvas = document.querySelector<HTMLCanvasElement>('.p-home-canvas')
 
   if (!canvas) {
     throw new Error('The shared portal canvas was not found.')

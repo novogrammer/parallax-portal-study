@@ -6,37 +6,60 @@
     <title>Layered Composition | Parallax Portal Studies</title>
   </head>
   <body>
-    <canvas class="p-study-canvas" aria-hidden="true"></canvas>
+    <canvas class="p-home-canvas" aria-hidden="true"></canvas>
     <main>
-      <section class="p-study-hero">
-        <a class="p-study-back" href="../../">All Studies</a>
-        <div class="p-study-copy">
+      <section class="p-home-hero">
+        <div class="p-bookend-copy">
+          <a class="p-study-back" href="../../">All Studies</a>
           <p class="p-eyebrow">Parallax Portal / WebGPU Study</p>
-          <h1>Compose in DOM.<br>Add depth later.</h1>
-          <p>CSSで組んだデザインカンプを、透過画像のレイヤーごと3Dへ移すための習作。</p>
+          <h1>Depth follows<br>the scroll.</h1>
+          <p>固定CanvasとDOMの窓を使った、垂直パララックスの基準実装。</p>
         </div>
       </section>
 
-      <section
-        class="p-composition-portal"
-        data-portal-id="layered-composition"
-        aria-labelledby="layered-composition-title"
-      >
-        <div class="p-portal-copy">
-          <p class="p-eyebrow">Portal 01 / Initial state</p>
-          <h2 id="layered-composition-title">Empty scene</h2>
-          <p>Portal、Camera、Rendererだけを初期化し、Sceneにはまだオブジェクトを置いていません。</p>
+      <section class="p-home-introduction" data-portal-id="warm-depth" aria-labelledby="warm-depth-title">
+        <div class="p-home-introduction__inner">
+          <div class="p-portal-copy">
+            <p class="p-eyebrow">Portal 01 / Introduction</p>
+            <h2 id="warm-depth-title">Warm depth</h2>
+            <p>近景・中景・遠景を、実際のZ距離で分離した検証Scene。</p>
+          </div>
+
+          <div class="p-home-introduction__text">
+            <p class="p-eyebrow">Dummy text / 01</p>
+            <h3>Scroll-linked camera</h3>
+            <p>ここにIntroductionの説明テキストが入ります。スクロールに合わせて変化する見え方や、体験の概要を記載するためのダミー領域です。</p>
+          </div>
+
+          <div class="p-home-introduction__text">
+            <p class="p-eyebrow">Dummy text / 02</p>
+            <h3>Natural parallax</h3>
+            <p>ここに奥行きや視差についての説明テキストが入ります。文章量と改行位置を確認するためのダミーコンテンツです。</p>
+          </div>
+
+          <div class="p-home-introduction__text">
+            <p class="p-eyebrow">Dummy text / 03</p>
+            <h3>One shared canvas</h3>
+            <p>ここにCanvasとDOMの関係を紹介する文章が入ります。最終的なコピーへ差し替えることを前提とした仮テキストです。</p>
+          </div>
         </div>
       </section>
 
-      <section class="p-study-footer">
-        <div class="p-study-copy">
-          <p class="p-eyebrow">Next step</p>
-          <h2>Transparent layers.<br>Measured from DOM.</h2>
+      <section class="p-home-showcase" data-portal-id="cool-depth" aria-labelledby="cool-depth-title">
+        <div class="p-portal-copy p-portal-copy--right">
+          <p class="p-eyebrow">Portal 02 / Showcase</p>
+          <h2 id="cool-depth-title">Cool depth</h2>
+          <p>独立したSceneとCameraを、同じCanvasへscissor描画。</p>
+        </div>
+      </section>
+
+      <section class="p-home-footer">
+        <div class="p-bookend-copy">
+          <p class="p-eyebrow">End of study</p>
+          <h2>Two portals.<br>One canvas.</h2>
         </div>
       </section>
     </main>
-
     <script type="module" src="./main.ts"></script>
   </body>
 </html>

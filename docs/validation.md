@@ -70,9 +70,10 @@ Portal Geometry、responsive選択、Camera clipping plane、Renderer状態復�
 
 | 条件 | 期待結果 |
 | --- | --- |
-| Portal数 | 1つ |
-| Scene直下のオブジェクト数 | `0` |
-| Portal表示 | Sceneのclear colorだけを表示し、3Dオブジェクトを描画しない |
+| section構成と本文 | Vertical Parallaxと同じHero、Introduction、Showcase、Footerを表示する |
+| Portal数 | 2つ |
+| 各Scene直下のオブジェクト数 | `0` |
+| Portal表示 | 各Sceneのclear colorだけを表示し、3Dオブジェクトを描画しない |
 | 通常URL | WebGPU backendで初期化できる |
 | `?forceWebGL=1` | WebGL 2 backendで同じ空Sceneを表示できる |
 | 今回の対象外 | 透過画像、`data-depth`、DOM矩形の逆投影 |

@@ -17,7 +17,12 @@ export const projectionConfiguration: ProjectionConfiguration = {
   ],
 }
 
-export const sceneConfiguration: SceneConfiguration = {
+export const warmSceneConfiguration: SceneConfiguration = {
+  cameraTopY: 7.5,
+  cameraBottomY: 0,
+}
+
+export const coolSceneConfiguration: SceneConfiguration = {
   cameraTopY: 3,
   cameraBottomY: 0,
 }

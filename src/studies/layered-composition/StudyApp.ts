@@ -1,9 +1,10 @@
 import { PortalRuntime } from 'parallax-portal'
 import { createStandaloneRenderer, StudyRenderer } from './StudyRenderer.ts'
 import {
+  coolSceneConfiguration,
   projectionConfiguration,
   referenceProjectionHeightMeters,
-  sceneConfiguration,
+  warmSceneConfiguration,
 } from './studyConfig.ts'
 import { createEmptyStudyScene } from './studyScene.ts'
 import type { StudySceneBundle } from './studyScene.ts'
@@ -27,7 +28,7 @@ function requirePortalElement(portalId: string): HTMLElement {
 
 export class StudyApp {
   private readonly options: StudyAppOptions
-  private sceneBundle: StudySceneBundle | null = null
+  private sceneBundles: StudySceneBundle[] = []
   private runtime: PortalRuntime | null = null
   private renderer: StudyRenderer | null = null
   private isInitialized = false
@@ -41,33 +42,45 @@ export class StudyApp {
       return
     }
 
-    const portalElement = requirePortalElement('layered-composition')
+    const warmElement = requirePortalElement('warm-depth')
+    const coolElement = requirePortalElement('cool-depth')
     const renderer = createStandaloneRenderer(this.options.canvas, this.options.forceWebGL)
-    const sceneBundle = createEmptyStudyScene()
+    const sceneBundles: StudySceneBundle[] = []
     let runtime: PortalRuntime | null = null
 
     try {
+      const warmScene = createEmptyStudyScene(0x2c160d)
+      sceneBundles.push(warmScene)
+      const coolScene = createEmptyStudyScene(0x071c2c)
+      sceneBundles.push(coolScene)
+
       runtime = new PortalRuntime({
         renderer,
         projection: projectionConfiguration,
         referenceProjectionHeightMeters,
         portals: [
           {
-            element: portalElement,
-            scene: sceneBundle.scene,
-            clearColor: sceneBundle.clearColor,
-            ...sceneConfiguration,
+            element: warmElement,
+            scene: warmScene.scene,
+            clearColor: warmScene.clearColor,
+            ...warmSceneConfiguration,
+          },
+          {
+            element: coolElement,
+            scene: coolScene.scene,
+            clearColor: coolScene.clearColor,
+            ...coolSceneConfiguration,
           },
         ],
       })
 
-      this.sceneBundle = sceneBundle
+      this.sceneBundles = sceneBundles
       this.runtime = runtime
       this.renderer = new StudyRenderer(renderer, runtime)
       this.isInitialized = true
     } catch (error) {
       runtime?.dispose()
-      sceneBundle.dispose()
+      sceneBundles.forEach((sceneBundle) => sceneBundle.dispose())
       if (renderer.initialized) {
         renderer.dispose()
       }
@@ -93,10 +106,10 @@ export class StudyApp {
     window.removeEventListener('pagehide', this.handlePageHide)
     this.renderer?.dispose()
     this.runtime?.dispose()
-    this.sceneBundle?.dispose()
+    this.sceneBundles.forEach((sceneBundle) => sceneBundle.dispose())
     this.renderer = null
     this.runtime = null
-    this.sceneBundle = null
+    this.sceneBundles = []
     this.isInitialized = false
   }
 

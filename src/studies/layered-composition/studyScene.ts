@@ -6,12 +6,14 @@ export interface StudySceneBundle {
   dispose: () => void
 }
 
-export function createEmptyStudyScene(): StudySceneBundle {
+export function createEmptyStudyScene(
+  clearColor: THREE.ColorRepresentation,
+): StudySceneBundle {
   const scene = new THREE.Scene()
 
   return {
     scene,
-    clearColor: 0x17201d,
+    clearColor,
     dispose: () => scene.clear(),
   }
 }

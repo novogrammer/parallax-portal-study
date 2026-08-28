@@ -103,15 +103,16 @@ DOMで再現したデザインカンプへ透過画像レイヤーの奥行き�
 ### 対象範囲
 
 - `src/studies/layered-composition/` に独立したHTML、App、Renderer、設定、Scene、SCSSを置く。
-- 1枚の固定Canvas、単一のWebGPURenderer、単一のPortalを初期化する。
-- SceneにはLight、Group、Mesh、Geometry、Materialを追加しない。
+- Vertical Parallaxと同じHero、Introduction、Showcase、Footer、本文、CSSを使用する。
+- 1枚の固定Canvas、単一のWebGPURenderer、2つのPortalを初期化する。
+- 両SceneにはLight、Group、Mesh、Geometry、Materialを追加しない。
 - Study一覧とViteのmulti-page buildへ追加する。
 - 透過画像、`data-depth`、DOM矩形の逆投影は次の実装段階まで追加しない。
 
 ### 完了条件
 
 - Study一覧からLayered Compositionを開ける。
-- 空のSceneをWebGPU backendとWebGL 2 fallbackの双方で描画できる。
-- Sceneの直下にオブジェクトが存在しないことを単体テストで確認できる。
+- 2つの空SceneをWebGPU backendとWebGL 2 fallbackの双方で描画できる。
+- 両Sceneの直下にオブジェクトが存在しないことを単体テストで確認できる。
 - `dist/studies/layered-composition/index.html` が生成される。
 - テスト、本番ビルド、ブラウザでの表示確認が成功する。
