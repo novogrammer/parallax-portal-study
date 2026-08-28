@@ -91,6 +91,48 @@ main {
     height: $introduction-height-pc;
   }
 
+  &__background{
+    position: absolute;
+    left:50%;
+    top:0;
+    transform:translate(-50%,0);
+    width: $introduction-width-sp * $px-to-vw-sp;
+    height:100%;
+    pointer-events: none;
+    @include mq-pc() {
+      width: $introduction-width-pc;
+    }
+    
+  }
+
+  &__sprite{
+      position:absolute;
+      display:block;
+      width:160px * $px-to-vw-sp;
+      height:auto;
+      @include mq-pc() {
+        width: 160px;
+      }
+    &--cloud{
+      left:0;
+      top:0;
+    }
+    &--sparkle{
+      left:0;
+      top:0;
+    }
+    &--flower{
+      left:0;
+      top:0;
+    }
+    &--leaf{
+      left:0;
+      top:0;
+    }
+
+  }
+
+
   &__inner {
     position: relative;
     display: flex;
