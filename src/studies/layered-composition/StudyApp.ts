@@ -100,9 +100,6 @@ export class StudyApp {
         renderer,
         runtime,
         () => sceneBundles.forEach((sceneBundle) => sceneBundle.updateLayout()),
-        (initializedRenderer) => {
-          sceneBundles.forEach((sceneBundle) => sceneBundle.activate(initializedRenderer))
-        },
       )
       this.isInitialized = true
     } catch (error) {

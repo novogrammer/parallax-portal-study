@@ -76,7 +76,7 @@ Portal Geometry、responsive選択、Camera clipping plane、Renderer状態復�
 | 各Portalの `data-z` | `-3`、`-2`、`-1`、`0` をworld unitのZ座標として使う |
 | 各Portal中央 | 4 Planeが元のDOM画像と同じ矩形へ投影される |
 | Portal中央の前後 | Z距離に応じてスクロール視差が生まれる |
-| Texture初期化成功 | Renderer初期化後に各Portalの4 Textureを初期化し、元のDOM画像を非表示にして4つの透明Planeを表示する |
+| Texture生成成功 | 同じ画像URLのTextureをPortal間で共有し、元のDOM画像を非表示にして4つの透明Planeを表示する |
 | Texture生成失敗 | 初期化を停止し、元のDOM画像をfallbackとして残す |
 | resize | DOM矩形、responsive FOV、Camera距離から全Planeを再配置する |
 | 一時的に無効なresize値 | 最後の正常なPlane配置を維持する |

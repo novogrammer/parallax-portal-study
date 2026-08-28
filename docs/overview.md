@@ -46,7 +46,7 @@ fixed Canvas / WebGPURenderer / setAnimationLoop
 
 Study固有のHTML、コード、将来追加するassetsは `src/studies/<study-name>/` へまとめる。ルートの一覧は各Studyへの入口だけを持ち、Study間でRuntimeやSceneを共有しない。
 
-Layered Compositionでは、両Portal内のDOM画像をデザインカンプ上の配置の正本とする。`domPlaneLayout.ts` がDOM実測矩形と `data-z` をworld座標へ変換し、`studyScene.ts` が画像URL単位で共有するTexture、PortalごとのPlaneとMaterial、初期配置、再配置、リソース解放を所有する。Rendererの初期化完了後に全Textureを明示的に初期化し、それから転写元DOMを非表示にする。JavaScriptは共通の `data-plane-source` だけを参照し、Portal固有のクラス名やCSS単位を知らない。
+Layered Compositionでは、両Portal内のDOM画像をデザインカンプ上の配置の正本とする。`domPlaneLayout.ts` がDOM実測矩形と `data-z` をworld座標へ変換し、`studyScene.ts` が画像URL単位で共有するTexture、PortalごとのPlaneとMaterial、初期配置、再配置、リソース解放を所有する。JavaScriptは共通の `data-plane-source` だけを参照し、Portal固有のクラス名やCSS単位を知らない。
 
 ## PageとPortal
 

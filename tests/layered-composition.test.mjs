@@ -71,7 +71,7 @@ test('a DOM plane Scene owns four transparent planes and disposes their resource
 
     await sceneBundle.ready
     assert.equal(sceneBundle.scene.children.length, 4)
-    assert.equal(sourceAttributes.has('data-projected'), false)
+    assert.equal(sourceAttributes.has('data-projected'), true)
 
     const meshes = [...sceneBundle.scene.children]
     meshes.forEach((mesh) => assert.equal(mesh.frustumCulled, false))
@@ -90,13 +90,6 @@ test('a DOM plane Scene owns four transparent planes and disposes their resource
       mesh.material.addEventListener('dispose', () => { materialDisposals += 1 })
     })
 
-    const initializedTextures = []
-    sceneBundle.activate({
-      initTexture: (texture) => initializedTextures.push(texture),
-    })
-
-    assert.equal(initializedTextures.length, 4)
-    assert.equal(sourceAttributes.has('data-projected'), true)
     assert.equal(
       textureStore.get({ currentSrc: images[0].currentSrc }),
       meshes[0].material.map,

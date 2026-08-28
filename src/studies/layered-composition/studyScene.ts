@@ -20,7 +20,6 @@ export interface StudySceneBundle {
   scene: THREE.Scene
   clearColor: THREE.ColorRepresentation
   ready: Promise<void>
-  activate: (renderer: THREE.WebGPURenderer) => void
   updateLayout: () => void
   dispose: () => void
 }
@@ -133,7 +132,6 @@ class DomPlaneStudyScene implements StudySceneBundle {
   private meshes: DomPlaneMesh[] = []
   private hasValidLayout = false
   private hasLayoutError = false
-  private isActivated = false
   private isDisposed = false
 
   constructor(options: DomPlaneStudySceneOptions) {
@@ -196,16 +194,6 @@ class DomPlaneStudyScene implements StudySceneBundle {
     }
   }
 
-  activate = (renderer: THREE.WebGPURenderer): void => {
-    if (this.isDisposed || this.isActivated) {
-      return
-    }
-
-    this.meshes.forEach(({ texture }) => renderer.initTexture(texture))
-    this.sourceElement.setAttribute(PROJECTED_ATTRIBUTE, '')
-    this.isActivated = true
-  }
-
   dispose = (): void => {
     if (this.isDisposed) {
       return
@@ -213,7 +201,6 @@ class DomPlaneStudyScene implements StudySceneBundle {
 
     this.isDisposed = true
     this.sourceElement.removeAttribute(PROJECTED_ATTRIBUTE)
-    this.isActivated = false
     this.releaseResources()
   }
 
@@ -242,6 +229,7 @@ class DomPlaneStudyScene implements StudySceneBundle {
       })
 
       this.updateLayout()
+      this.sourceElement.setAttribute(PROJECTED_ATTRIBUTE, '')
     } catch (error) {
       this.releaseResources()
       throw error
