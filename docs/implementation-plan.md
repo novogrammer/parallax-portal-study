@@ -122,22 +122,22 @@ DOMで再現したデザインカンプへ透過画像レイヤーの奥行き�
 
 ### 目的
 
-DOMで配置した透過画像を正本とし、その実測矩形と `data-z` からPortal 01のPlaneを生成する。Portal中央ではDOMと同じ重なりを保ち、スクロール前後ではZ距離に応じた視差を表示する。
+DOMで配置した透過画像を正本とし、その実測矩形と `data-z` から両PortalのPlaneを生成する。Portal中央ではDOMと同じ重なりを保ち、スクロール前後ではZ距離に応じた視差を表示する。
 
 ### 対象範囲
 
-- 4枚のDOM画像をPortal中央の高さへ重ね、Z座標を `-3m`、`-2m`、`-1m`、`0m` とする。
+- 各Portalで4枚のDOM画像をPortal中央の高さへ重ね、Z座標を `-3m`、`-2m`、`-1m`、`0m` とする。
 - CSS pxをSceneのworld unitへ変換し、Camera距離とZ座標から位置と寸法を補正する。
-- DOM画像からsRGB Textureと透明なPlaneを生成し、成功後だけ元画像を非表示にする。
+- DOM画像からsRGB Textureと透明なPlaneを生成し、成功後だけ元画像を透明にする。
 - 初期化時とresize時に配置を計算し、スクロール中はPortalRuntimeのCamera移動だけで視差を作る。
-- Portal 02は空Sceneのまま維持する。
+- IntroductionはSPのvw / PCのpx、ShowcaseはSP / PCともにvwで定義したDOM配置を実測する。
 
-Motion、Shader、ポストプロセス、package API変更は対象外とする。
+Motion、Shader、ポストプロセス、追加画像、package API変更は対象外とする。
 
 ### 完了条件
 
-- Portal中央で4枚がDOMと同じ矩形へ重なり、スクロール前後で視差が生まれる。
+- 各Portalの中央で4枚がDOMと同じ矩形へ重なり、スクロール前後で視差が生まれる。
 - wide / narrowとresize後にDOM実測値からPlane配置が更新される。
-- 読み込み成功後はDOM画像を隠し、失敗時はDOM表示をfallbackとして残す。
+- 読み込み成功後はDOM画像を透明にし、失敗時はDOM表示をfallbackとして残す。
 - WebGPU backendとWebGL 2 fallbackで同じ構成を描画できる。
 - テスト、本番ビルド、Chromeでの表示確認が成功する。

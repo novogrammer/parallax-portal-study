@@ -6,10 +6,7 @@ import {
   referenceProjectionHeightMeters,
   warmSceneConfiguration,
 } from './studyConfig.ts'
-import {
-  createDomPlaneStudyScene,
-  createEmptyStudyScene,
-} from './studyScene.ts'
+import { createDomPlaneStudyScene } from './studyScene.ts'
 import type { StudySceneBundle } from './studyScene.ts'
 
 export interface StudyAppOptions {
@@ -60,7 +57,13 @@ export class StudyApp {
         sceneConfiguration: warmSceneConfiguration,
       })
       sceneBundles.push(warmScene)
-      const coolScene = createEmptyStudyScene(0x071c2c)
+      const coolScene = createDomPlaneStudyScene({
+        portalElement: coolElement,
+        clearColor: 0x071c2c,
+        projectionConfiguration,
+        referenceProjectionHeightMeters,
+        sceneConfiguration: coolSceneConfiguration,
+      })
       sceneBundles.push(coolScene)
 
       runtime = new PortalRuntime({

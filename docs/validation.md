@@ -72,18 +72,19 @@ Portal Geometry、responsive選択、Camera clipping plane、Renderer状態復�
 | --- | --- |
 | section構成と本文 | Vertical Parallaxと同じHero、Introduction、Showcase、Footerを表示する |
 | Portal数 | 2つ |
-| Portal 01のDOM画像 | 同じX位置とPortal中央の高さへ4枚が重なる |
-| Portal 01の `data-z` | `-3`、`-2`、`-1`、`0` をworld unitのZ座標として使う |
-| Portal中央 | 4 Planeが元のDOM画像と同じ矩形へ投影される |
+| 各PortalのDOM画像 | 同じX位置とPortal中央の高さへ4枚が重なる |
+| 各Portalの `data-z` | `-3`、`-2`、`-1`、`0` をworld unitのZ座標として使う |
+| 各Portal中央 | 4 Planeが元のDOM画像と同じ矩形へ投影される |
 | Portal中央の前後 | Z距離に応じてスクロール視差が生まれる |
-| Texture生成成功 | 元のDOM画像を非表示にし、4つの透明Planeを表示する |
+| Texture生成成功 | 各Portalで元のDOM画像を `opacity: 0` にし、4つの透明Planeを表示する |
 | Texture生成失敗 | 初期化を停止し、元のDOM画像をfallbackとして残す |
 | resize | DOM矩形、responsive FOV、Camera距離から全Planeを再配置する |
 | 一時的に無効なresize値 | 最後の正常なPlane配置を維持する |
-| Portal 02 | Scene直下のオブジェクト数を `0` のまま維持する |
+| Introductionの画像寸法 | SPは375px基準のvw、PCはpxで指定する |
+| Showcaseの画像寸法 | SPは375px基準、PCは1200px基準のvwで指定する |
 | 通常URL | WebGPU backendで初期化できる |
 | `?forceWebGL=1` | WebGL 2 backendで同じLayered Compositionを表示できる |
-| 今回の対象外 | Motion、Shader、ポストプロセス、Portal 02のオブジェクト |
+| 今回の対象外 | Motion、Shader、ポストプロセス、追加画像 |
 
 ## 自動検証
 
@@ -93,4 +94,4 @@ npm test
 npm run build
 ```
 
-本番ビルドでは、Study一覧、Vertical Parallax、Layered CompositionのHTMLがそれぞれ `dist/` に生成されることを確認する。Studyの単体テストでは、wide / narrowの共有FOV、共通基準投影高、PortalごとのCamera Y範囲、DOM-to-world変換、Z補正、resize再計算、Portal 02の空Scene、`setAnimationLoop()` による開始と停止を確認する。見た目に影響する変更ではブラウザで通常のWebGPU経路と `?forceWebGL=1` の双方について、各Portalの表示とConsole error不在を確認する。
+本番ビルドでは、Study一覧、Vertical Parallax、Layered CompositionのHTMLがそれぞれ `dist/` に生成されることを確認する。Studyの単体テストでは、wide / narrowの共有FOV、共通基準投影高、PortalごとのCamera Y範囲、両Portalの転写元、DOM-to-world変換、Z補正、resize再計算、Sceneリソース解放、`setAnimationLoop()` による開始と停止を確認する。見た目に影響する変更ではブラウザで通常のWebGPU経路と `?forceWebGL=1` の双方について、各Portalの表示とConsole error不在を確認する。

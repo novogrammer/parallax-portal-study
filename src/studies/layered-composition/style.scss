@@ -12,6 +12,8 @@ $introduction-width-sp: 350px;
 $introduction-height-sp: $showcase-height-sp * $introduction-to-showcase-ratio-sp;
 $introduction-width-pc: 768px;
 $introduction-height-pc: 1800px;
+$showcase-width-sp: 350px;
+$showcase-width-pc: 760px;
 $showcase-height-pc: 670px;
 
 @mixin mq-pc() {
@@ -104,9 +106,6 @@ main {
       width: $introduction-width-pc;
     }
 
-    &--projected {
-      visibility: hidden;
-    }
   }
 
   &__sprite {
@@ -225,13 +224,45 @@ main {
     height: $showcase-height-pc * $px-to-vw-pc;
   }
 
-  .p-portal-copy {
-    max-width: 350px * $px-to-vw-sp;
+  &__background {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: $showcase-width-sp * $px-to-vw-sp;
+    height: 100%;
+    transform: translateX(-50%);
+    pointer-events: none;
 
     @include mq-pc() {
-      max-width: 760px * $px-to-vw-pc;
+      width: $showcase-width-pc * $px-to-vw-pc;
     }
   }
+
+  &__sprite {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    display: block;
+    width: 160px * $px-to-vw-sp;
+    height: auto;
+    transform: translateY(-50%);
+
+    @include mq-pc() {
+      width: 160px * $px-to-vw-pc;
+    }
+  }
+
+  .p-portal-copy {
+    max-width: $showcase-width-sp * $px-to-vw-sp;
+
+    @include mq-pc() {
+      max-width: $showcase-width-pc * $px-to-vw-pc;
+    }
+  }
+}
+
+[data-plane-source][data-projected] {
+  opacity: 0;
 }
 
 .p-study-back {

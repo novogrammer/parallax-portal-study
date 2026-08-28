@@ -13,8 +13,8 @@ import {
   parseDomPlaneZ,
 } from './domPlaneLayout.ts'
 
-const SOURCE_SELECTOR = '.p-home-introduction__background'
-const PROJECTED_CLASS = 'p-home-introduction__background--projected'
+const SOURCE_SELECTOR = '[data-plane-source]'
+const PROJECTED_ATTRIBUTE = 'data-projected'
 
 export interface StudySceneBundle {
   scene: THREE.Scene
@@ -155,7 +155,7 @@ class DomPlaneStudyScene implements StudySceneBundle {
     }
 
     this.isDisposed = true
-    this.sourceElement.classList.remove(PROJECTED_CLASS)
+    this.sourceElement.removeAttribute(PROJECTED_ATTRIBUTE)
     this.releaseResources()
   }
 
@@ -178,6 +178,7 @@ class DomPlaneStudyScene implements StudySceneBundle {
           depthWrite: false,
         })
         const mesh = new THREE.Mesh(this.geometry, material)
+        mesh.frustumCulled = false
         mesh.name = `dom-plane:${source.image.className}`
         this.scene.add(mesh)
 
@@ -185,7 +186,7 @@ class DomPlaneStudyScene implements StudySceneBundle {
       })
 
       this.updateLayout()
-      this.sourceElement.classList.add(PROJECTED_CLASS)
+      this.sourceElement.setAttribute(PROJECTED_ATTRIBUTE, '')
     } catch (error) {
       this.releaseResources()
       throw error
@@ -207,18 +208,4 @@ export function createDomPlaneStudyScene(
   options: DomPlaneStudySceneOptions,
 ): StudySceneBundle {
   return new DomPlaneStudyScene(options)
-}
-
-export function createEmptyStudyScene(
-  clearColor: THREE.ColorRepresentation,
-): StudySceneBundle {
-  const scene = new THREE.Scene()
-
-  return {
-    scene,
-    clearColor,
-    ready: Promise.resolve(),
-    updateLayout: () => {},
-    dispose: () => scene.clear(),
-  }
 }

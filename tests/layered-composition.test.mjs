@@ -7,34 +7,23 @@ import {
   referenceProjectionHeightMeters,
   warmSceneConfiguration,
 } from '../src/studies/layered-composition/studyConfig.ts'
-import {
-  createDomPlaneStudyScene,
-  createEmptyStudyScene,
-} from '../src/studies/layered-composition/studyScene.ts'
+import { createDomPlaneStudyScene } from '../src/studies/layered-composition/studyScene.ts'
 
-test('layered composition keeps Portal 02 empty', async () => {
-  const sceneBundle = createEmptyStudyScene(0x071c2c)
-
-  await sceneBundle.ready
-  assert.equal(sceneBundle.scene.children.length, 0)
-  sceneBundle.updateLayout()
-
-  sceneBundle.dispose()
-  assert.equal(sceneBundle.scene.children.length, 0)
-})
-
-test('layered composition defines four DOM plane sources', async () => {
+test('layered composition defines four DOM plane sources for each Portal', async () => {
   const html = await readFile(
     new URL('../src/studies/layered-composition/index.html', import.meta.url),
     'utf8',
   )
   const zValues = Array.from(html.matchAll(/data-z="([^"]+)"/g), (match) => Number(match[1]))
 
-  assert.deepEqual(zValues, [-3, -2, -1, 0])
+  const sourceCount = html.match(/data-plane-source/g)?.length ?? 0
+
+  assert.equal(sourceCount, 2)
+  assert.deepEqual(zValues, [-3, -2, -1, 0, -3, -2, -1, 0])
 })
 
-test('Portal 01 owns four transparent planes and disposes their resources', async () => {
-  const projectedClasses = new Set()
+test('a DOM plane Scene owns four transparent planes and disposes their resources', async () => {
+  const sourceAttributes = new Set(['data-plane-source'])
   const images = [-3, -2, -1, 0].map((z) => ({
     className: `plane-${z}`,
     decode: async () => {},
@@ -47,10 +36,8 @@ test('Portal 01 owns four transparent planes and disposes their resources', asyn
     }),
   }))
   const sourceElement = {
-    classList: {
-      add: (name) => projectedClasses.add(name),
-      remove: (name) => projectedClasses.delete(name),
-    },
+    setAttribute: (name) => sourceAttributes.add(name),
+    removeAttribute: (name) => sourceAttributes.delete(name),
     querySelectorAll: () => images,
   }
   const portalElement = {
@@ -78,9 +65,10 @@ test('Portal 01 owns four transparent planes and disposes their resources', asyn
 
     await sceneBundle.ready
     assert.equal(sceneBundle.scene.children.length, 4)
-    assert.equal(projectedClasses.has('p-home-introduction__background--projected'), true)
+    assert.equal(sourceAttributes.has('data-projected'), true)
 
     const meshes = [...sceneBundle.scene.children]
+    meshes.forEach((mesh) => assert.equal(mesh.frustumCulled, false))
     const geometry = meshes[0].geometry
     let geometryDisposals = 0
     let materialDisposals = 0
@@ -96,7 +84,7 @@ test('Portal 01 owns four transparent planes and disposes their resources', asyn
     sceneBundle.dispose()
 
     assert.equal(sceneBundle.scene.children.length, 0)
-    assert.equal(projectedClasses.size, 0)
+    assert.equal(sourceAttributes.has('data-projected'), false)
     assert.equal(geometryDisposals, 1)
     assert.equal(materialDisposals, 4)
     assert.equal(textureDisposals, 4)
