@@ -1,4 +1,4 @@
-# Vertical Parallax Study 構成
+# Parallax Portal Studies 構成
 
 ## 目的
 
@@ -46,6 +46,8 @@ fixed Canvas / WebGPURenderer / setAnimationLoop
 
 Study固有のHTML、コード、将来追加するassetsは `src/studies/<study-name>/` へまとめる。ルートの一覧は各Studyへの入口だけを持ち、Study間でRuntimeやSceneを共有しない。
 
+Layered Compositionでは、Portal 01内のDOM画像をデザインカンプ上の配置の正本とする。`domPlaneLayout.ts` がDOM実測矩形と `data-z` をworld座標へ変換し、`studyScene.ts` が画像Texture、Plane、初期配置、再配置、リソース解放を所有する。Portal 02は比較用の空Sceneとする。
+
 ## PageとPortal
 
 ページはHero、Introduction、Showcase、Footerの順に並ぶ。IntroductionとShowcaseがPortalであり、それぞれ一意な `data-portal-id` を持つ。Portalの外枠は表示せず、見出しと通常コンテンツを3D Sceneの前面へ重ねる。
@@ -73,6 +75,14 @@ breakpointは `768px` とする。
 - Introduction内の余白と文字サイズはpxで指定する。
 
 CSSの単位やPortal間の垂直スケールをRuntime側で統一しない。Runtimeへ渡るのは `getBoundingClientRect()` から得たCSS pxの実測値であり、pxとvwの違いはデザイン結果として許容する。
+
+Layered Compositionの4枚の画像は同じX位置とPortal中央の高さへ重ねる。Three.jsへの転写成功後はDOM画像を `visibility: hidden` にするが、resize時の再計測に使うためDOMから削除せず、`display: none` にもしない。
+
+## Layered CompositionのDOM転写
+
+Portal 01では、Camera移動高をPortalのCSS高で割った値をz=0平面のCSS pxあたりのworld unitとする。DOM矩形をz=0の位置と寸法へ変換した後、現在のresponsive FOVから得たCamera距離と `data-z` によってPlaneを補正する。共通アンカーはPortal中央に対応するCamera Yとし、その時点では異なるZの4枚がDOMと同じ矩形へ投影される。
+
+初期化では画像のdecode、Texture生成、初回配置がすべて成功してからDOM画像を隠し、描画ループを開始する。resize時はRendererサイズの更新後にDOM矩形とresponsive FOVを読み直して全Planeを更新する。スクロール中は再計測せず、PortalRuntimeが所有するCamera移動だけを使う。一時的に有効な矩形を取得できない場合は最後の正常な配置を維持する。
 
 ## Sceneと設定
 

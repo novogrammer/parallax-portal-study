@@ -91,47 +91,37 @@ main {
     height: $introduction-height-pc;
   }
 
-  &__background{
+  &__background {
     position: absolute;
-    left:50%;
-    top:0;
-    transform:translate(-50%,0);
+    top: 0;
+    left: 50%;
     width: $introduction-width-sp * $px-to-vw-sp;
-    height:100%;
+    height: 100%;
+    transform: translateX(-50%);
     pointer-events: none;
+
     @include mq-pc() {
       width: $introduction-width-pc;
     }
-    
+
+    &--projected {
+      visibility: hidden;
+    }
   }
 
-  &__sprite{
-      position:absolute;
-      display:block;
-      width:160px * $px-to-vw-sp;
-      height:auto;
-      @include mq-pc() {
-        width: 160px;
-      }
-    &--cloud{
-      left:0;
-      top:0;
-    }
-    &--sparkle{
-      left:0;
-      top:0;
-    }
-    &--flower{
-      left:0;
-      top:0;
-    }
-    &--leaf{
-      left:0;
-      top:0;
-    }
+  &__sprite {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    display: block;
+    width: 160px * $px-to-vw-sp;
+    height: auto;
+    transform: translateY(-50%);
 
+    @include mq-pc() {
+      width: 160px;
+    }
   }
-
 
   &__inner {
     position: relative;

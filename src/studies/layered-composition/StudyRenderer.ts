@@ -9,11 +9,17 @@ const MAX_DEVICE_PIXEL_RATIO = 2
 export class StudyRenderer {
   private readonly renderer: THREE.WebGPURenderer
   private readonly runtime: PortalRuntime
+  private readonly onResize: () => void
   private isStarted = false
 
-  constructor(renderer: THREE.WebGPURenderer, runtime: PortalRuntime) {
+  constructor(
+    renderer: THREE.WebGPURenderer,
+    runtime: PortalRuntime,
+    onResize: () => void,
+  ) {
     this.renderer = renderer
     this.runtime = runtime
+    this.onResize = onResize
   }
 
   async start(): Promise<void> {
@@ -23,9 +29,9 @@ export class StudyRenderer {
 
     this.isStarted = true
     window.addEventListener('resize', this.resize, { passive: true })
-    this.resize()
 
     try {
+      this.resize()
       await this.renderer.setAnimationLoop(this.render)
       this.renderer.domElement.dataset.rendererBackend =
         'isWebGPUBackend' in this.renderer.backend ? 'webgpu' : 'webgl2'
@@ -51,6 +57,7 @@ export class StudyRenderer {
   private readonly resize = (): void => {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_DEVICE_PIXEL_RATIO))
     this.renderer.setSize(window.innerWidth, window.innerHeight, false)
+    this.onResize()
   }
 
   private readonly render = (): void => {

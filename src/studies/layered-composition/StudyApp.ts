@@ -6,7 +6,10 @@ import {
   referenceProjectionHeightMeters,
   warmSceneConfiguration,
 } from './studyConfig.ts'
-import { createEmptyStudyScene } from './studyScene.ts'
+import {
+  createDomPlaneStudyScene,
+  createEmptyStudyScene,
+} from './studyScene.ts'
 import type { StudySceneBundle } from './studyScene.ts'
 
 export interface StudyAppOptions {
@@ -49,7 +52,13 @@ export class StudyApp {
     let runtime: PortalRuntime | null = null
 
     try {
-      const warmScene = createEmptyStudyScene(0x2c160d)
+      const warmScene = createDomPlaneStudyScene({
+        portalElement: warmElement,
+        clearColor: 0x2c160d,
+        projectionConfiguration,
+        referenceProjectionHeightMeters,
+        sceneConfiguration: warmSceneConfiguration,
+      })
       sceneBundles.push(warmScene)
       const coolScene = createEmptyStudyScene(0x071c2c)
       sceneBundles.push(coolScene)
@@ -76,7 +85,11 @@ export class StudyApp {
 
       this.sceneBundles = sceneBundles
       this.runtime = runtime
-      this.renderer = new StudyRenderer(renderer, runtime)
+      this.renderer = new StudyRenderer(
+        renderer,
+        runtime,
+        () => sceneBundles.forEach((sceneBundle) => sceneBundle.updateLayout()),
+      )
       this.isInitialized = true
     } catch (error) {
       runtime?.dispose()
@@ -94,6 +107,7 @@ export class StudyApp {
     }
 
     try {
+      await Promise.all(this.sceneBundles.map((sceneBundle) => sceneBundle.ready))
       await this.renderer.start()
       window.addEventListener('pagehide', this.handlePageHide, { once: true })
     } catch (error) {
